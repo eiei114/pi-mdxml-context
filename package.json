@@ -21,7 +21,14 @@
     "typescript": "^5.9.0"
   },
   "license": "MIT",
-  "description": "Pi-mdxml-context",
+  "description": "Pi extension that converts Markdown context to XML-like structure at model send time",
+  "keywords": [
+    "pi",
+    "pi-extension",
+    "markdown",
+    "xml",
+    "context"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/eiei114/pi-mdxml-context.git"

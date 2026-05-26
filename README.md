@@ -1,19 +1,31 @@
 # pi-mdxml-context
 
-Pi extension that converts Markdown context into XML-like structure before model requests, while keeping original Markdown in the session.
+Pi extension that converts Markdown context into XML-like structure at model send time, while keeping the original Markdown in the session history.
+
+It is meant for agent workflows where Markdown files are convenient for humans, but explicit XML-like boundaries can make complex context easier for models to parse.
 
 ## Features
 
-- Send-time Markdown to XML-like conversion
-- Context file conversion
-- Markdown tool result conversion without mutating session history
-- Preview command for files and recent Markdown tool results
-- A/B toggle commands
-- Expansion guard for large outputs
+- Converts Markdown context files before model requests
+- Converts Markdown tool results without mutating saved session history
+- Preserves source metadata on the generated XML root element
+- Supports frontmatter, GFM, code blocks, tables, wikilinks, and Obsidian-style callouts
+- Provides preview and A/B toggle commands
+- Skips conversion when XML output grows too large
+
+## How it works
+
+The extension uses Pi runtime hooks:
+
+- `before_agent_start` converts loaded Markdown context files.
+- `tool_result` tracks recently-read Markdown content.
+- `context` converts Markdown tool results only in the provider-bound context.
+
+The session still stores the original Markdown. Conversion happens only for the model request.
 
 ## Install
 
-Copy this folder to a Pi extension location:
+Clone or copy this project into a Pi extension location, for example:
 
 ```text
 .pi/extensions/pi-mdxml-context/
@@ -31,15 +43,48 @@ Reload Pi:
 /reload
 ```
 
+Pi loads the extension from `package.json` via:
+
+```json
+{
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
+```
+
 ## Commands
 
-```text
-/mdxml:on
-/mdxml:off
-/mdxml:status
-/mdxml:preview path/to/file.md
-/mdxml:preview recent:1
+| Command | Description |
+| --- | --- |
+| `/mdxml:on` | Enable send-time conversion. |
+| `/mdxml:off` | Disable send-time conversion. |
+| `/mdxml:status` | Show conversion state and recent stats. |
+| `/mdxml:preview path/to/file.md` | Preview XML-like output for a Markdown file. |
+| `/mdxml:preview recent:1` | Preview XML-like output for the most recent Markdown tool result. |
+
+Preview arguments support completion for Markdown paths and `recent:N` targets.
+
+## Output shape
+
+Example root element:
+
+```xml
+<markdown_context source="tool_result" path="docs/example.md" tool="read" original_format="markdown" converted_by="pi-mdxml-context">
+  <section depth="1" title="Example">
+    <paragraph>Hello <strong>world</strong>.</paragraph>
+  </section>
+</markdown_context>
 ```
+
+The output is strict-ish XML: a single root, escaped text, escaped attributes, and fixed tag names. Schema validation is intentionally out of scope for the first version.
+
+## Safety notes
+
+- Conversion is enabled by default after the extension loads.
+- `/mdxml:off` disables conversion immediately.
+- The extension does not rewrite saved session messages.
+- Large conversions are skipped when output exceeds the configured expansion guard.
 
 ## Development
 
