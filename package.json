@@ -31,7 +31,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/eiei114/pi-mdxml-context.git"
+    "url": "git+https://github.com/eiei114/pi-mdxml-context.git"
   },
   "bugs": {
     "url": "https://github.com/eiei114/pi-mdxml-context/issues"
