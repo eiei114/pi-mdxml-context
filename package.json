@@ -36,5 +36,13 @@
   "bugs": {
     "url": "https://github.com/eiei114/pi-mdxml-context/issues"
   },
-  "homepage": "https://github.com/eiei114/pi-mdxml-context"
+  "homepage": "https://github.com/eiei114/pi-mdxml-context",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "index.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
