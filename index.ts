@@ -63,14 +63,17 @@ let recentSeq = 0;
 const recent: RecentItem[] = [];
 const toolMetaByCallId = new Map<string, ToolMeta>();
 
+/** Escape XML special characters in text content. */
 function escapeText(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/** Escape and flatten a value for use in XML attributes. */
 function escapeAttr(value: string | undefined): string {
   return escapeText(value ?? "").replace(/"/g, "&quot;").replace(/\r?\n/g, " ");
 }
 
+/** Render optional XML attributes from a key-value map. */
 function attrs(values: Record<string, string | number | boolean | undefined>): string {
   const rendered = Object.entries(values)
     .filter(([, value]) => value !== undefined && value !== "")
@@ -78,16 +81,19 @@ function attrs(values: Record<string, string | number | boolean | undefined>): s
   return rendered.length > 0 ? ` ${rendered.join(" ")}` : "";
 }
 
+/** Recursively collect plain text from a markdown AST node. */
 function collectText(node: MdNode | undefined): string {
   if (!node) return "";
   if (typeof node.value === "string") return node.value;
   return (node.children ?? []).map(collectText).join("");
 }
 
+/** Return true when the path looks like a Markdown file. */
 function isMarkdownPath(path: unknown): path is string {
   return typeof path === "string" && /\.md(?:x)?$/i.test(path.replace(/^@/, ""));
 }
 
+/** Heuristically detect Markdown-like content from a sample prefix. */
 function looksLikeMarkdown(content: string): boolean {
   const sample = content.slice(0, 4000);
   if (/^---\r?\n[\s\S]*?\r?\n---/m.test(sample)) return true;
@@ -96,11 +102,13 @@ function looksLikeMarkdown(content: string): boolean {
   return false;
 }
 
+/** Decide whether content should be converted based on path or content shape. */
 function shouldConvert(content: string, path?: string): boolean {
   if (path && isMarkdownPath(path)) return true;
   return looksLikeMarkdown(content);
 }
 
+/** Extract plain text from Pi tool result content shapes. */
 function extractTextContent(content: unknown): string | undefined {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return undefined;
@@ -110,6 +118,7 @@ function extractTextContent(content: unknown): string | undefined {
   return textParts.length > 0 ? textParts.join("\n") : undefined;
 }
 
+/** Replace text parts in Pi tool result content while preserving structure. */
 function replaceTextContent(content: unknown, text: string): unknown {
   if (typeof content === "string") return text;
   if (!Array.isArray(content)) return content;
@@ -123,6 +132,7 @@ function replaceTextContent(content: unknown, text: string): unknown {
   return replaced ? next : [{ type: "text", text }];
 }
 
+/** Normalize Obsidian callout blockquote syntax before parsing. */
 function preprocessObsidianMarkdown(markdown: string): string {
   return markdown.replace(/^>\s*\[!([^\]]+)]([+-])?\s*(.*)$/gm, (_match, type, fold, title) => {
     const foldPart = fold ? ` fold=${fold}` : "";
@@ -131,6 +141,7 @@ function preprocessObsidianMarkdown(markdown: string): string {
   });
 }
 
+/** Render wikilink and embed patterns inside inline text. */
 function renderInlineText(value: string): string {
   const pattern = /(!)?\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   let output = "";
@@ -149,6 +160,7 @@ function renderInlineText(value: string): string {
   return output;
 }
 
+/** Render a single inline markdown node to XML. */
 function renderInline(node: MdNode): string {
   switch (node.type) {
     case "text":
@@ -175,10 +187,12 @@ function renderInline(node: MdNode): string {
   }
 }
 
+/** Render a list of inline markdown nodes to XML. */
 function renderInlines(children: MdNode[] | undefined): string {
   return (children ?? []).map(renderInline).join("");
 }
 
+/** Parse an Obsidian callout from a blockquote node when present. */
 function parseCallout(node: MdNode): { type: string; fold?: string; title?: string; children: MdNode[] } | undefined {
   const children = node.children ?? [];
   const first = children[0];
@@ -197,6 +211,7 @@ function parseCallout(node: MdNode): { type: string; fold?: string; title?: stri
   return { type: match[1] ?? "note", fold: match[2], title: match[3], children: nextChildren };
 }
 
+/** Render a block-level markdown node to XML. */
 function renderBlock(node: MdNode, indexInParent = -1): string {
   switch (node.type) {
     case "yaml":
@@ -238,6 +253,7 @@ function renderBlock(node: MdNode, indexInParent = -1): string {
   }
 }
 
+/** Group top-level nodes into nested sections by heading depth. */
 function sectionize(children: MdNode[]): MdNode[] {
   const root: MdNode = { type: "section", depth: 0, title: "", children: [] };
   const stack: MdNode[] = [root];
@@ -257,6 +273,7 @@ function sectionize(children: MdNode[]): MdNode[] {
   return root.children ?? [];
 }
 
+/** Convert markdown source to XML with provenance metadata and size guards. */
 function convertMarkdown(markdown: string, provenance: Provenance): ConversionResult {
   const originalChars = markdown.length;
   try {
@@ -281,41 +298,49 @@ function convertMarkdown(markdown: string, provenance: Provenance): ConversionRe
   }
 }
 
+/** Store a recently converted markdown payload for preview completions. */
 function addRecent(content: string, provenance: Provenance): void {
   const label = provenance.path ?? `${provenance.tool ?? provenance.source}:${recentSeq + 1}`;
   recent.unshift({ id: ++recentSeq, label, content, provenance });
   recent.splice(MAX_RECENT);
 }
 
+/** Refresh the extension status line in the UI when available. */
 function updateStatus(ctx: ExtensionContext): void {
   if (!ctx.hasUI) return;
   ctx.ui.setStatus("mdxml", `mdxml:${enabled ? "on" : "off"} ${lastStats.converted}c/${lastStats.skipped}s`);
 }
 
+/** Reset per-turn conversion counters before agent work. */
 function beginStats(): void {
   activeStats = { converted: 0, skipped: 0 };
 }
 
+/** Commit per-turn stats and refresh status after agent work. */
 function endStats(ctx: ExtensionContext): void {
   lastStats = { ...activeStats };
   updateStatus(ctx);
 }
 
+/** Read an optional path field from tool input, stripping a leading @. */
 function getInputPath(input: Record<string, unknown>): string | undefined {
   const raw = input.path;
   return typeof raw === "string" ? raw.replace(/^@/, "") : undefined;
 }
 
+/** Resolve a preview command argument to an absolute path under cwd. */
 function resolvePreviewPath(arg: string): string {
   const clean = arg.replace(/^@/, "");
   return resolve(cwd, clean);
 }
 
+/** Collect markdown file paths under cwd for autocomplete, up to a depth limit. */
 function findMarkdownFiles(prefix: string): AutocompleteItem[] {
   const normalizedPrefix = prefix.replace(/^@/, "").replace(/\\/g, "/");
   const results: AutocompleteItem[] = [];
   const ignored = new Set([".git", ".obsidian", "node_modules", ".pi", ".claude"]);
 
+  /** Recursively scan directories for markdown files matching the prefix. */
   function walk(dir: string, depth: number): void {
     if (results.length >= MAX_COMPLETIONS || depth > 5) return;
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -337,6 +362,7 @@ function findMarkdownFiles(prefix: string): AutocompleteItem[] {
   return results;
 }
 
+/** Build autocomplete items from recent conversions and workspace markdown files. */
 function previewCompletions(prefix: string): AutocompleteItem[] {
   const recentItems = recent.map((item, index) => ({
     value: `recent:${index + 1}`,
@@ -346,6 +372,7 @@ function previewCompletions(prefix: string): AutocompleteItem[] {
   return [...recentItems, ...findMarkdownFiles(prefix)].slice(0, MAX_COMPLETIONS);
 }
 
+/** Run /mdxml:preview for a file path or recent:N and show the result in an editor. */
 async function handlePreview(args: string, ctx: ExtensionCommandContext): Promise<void> {
   const target = args.trim();
   if (!target) {
@@ -378,6 +405,10 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
   if (edited === undefined) ctx.ui.notify("Preview closed", "info");
 }
 
+export { convertMarkdown };
+export type { ConversionResult, Provenance };
+
+/** Register the pi-mdxml-context extension hooks and commands. */
 export default function piMdxmlContext(pi: ExtensionAPI): void {
   pi.on("session_start", (_event: any, ctx: ExtensionContext) => {
     cwd = ctx.cwd;

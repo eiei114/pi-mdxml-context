@@ -4,9 +4,11 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
+    "erasableSyntaxOnly": true,
     "skipLibCheck": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["index.ts"]
+  "include": ["index.ts", "tests/**/*.ts"]
 }
