@@ -19,7 +19,7 @@ describe("convertMarkdown golden fixtures", () => {
     const base = name.replace(/\.md$/, "");
     it(`matches committed golden XML for ${base}`, () => {
       const md = readFileSync(join(fixturesDir, name), "utf8");
-      const expected = readFileSync(join(fixturesDir, `${base}.expected.xml`), "utf8");
+      const expected = readFileSync(join(fixturesDir, `${base}.expected.xml`), "utf8").replace(/\r\n/g, "\n");
       const result = convertMarkdown(md, goldenProvenance);
       assert.equal(result.ok, true, result.ok ? "" : result.reason);
       if (result.ok) {
