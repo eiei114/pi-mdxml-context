@@ -378,6 +378,9 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
   if (edited === undefined) ctx.ui.notify("Preview closed", "info");
 }
 
+export { convertMarkdown };
+export type { ConversionResult, Provenance };
+
 export default function piMdxmlContext(pi: ExtensionAPI): void {
   pi.on("session_start", (_event: any, ctx: ExtensionContext) => {
     cwd = ctx.cwd;
