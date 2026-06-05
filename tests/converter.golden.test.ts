@@ -82,6 +82,7 @@ describe("expansion guard", () => {
     const result = convertMarkdown("# Hi", goldenProvenance);
     assert.equal(result.ok, false);
     if (!result.ok) {
+      assert.equal(result.skipCategory, "expansion_ratio");
       assert.match(result.reason, /expansion ratio exceeds 2/);
       assert.equal(result.originalChars, 4);
       assert.ok(result.outputChars !== undefined && result.outputChars > 4);
