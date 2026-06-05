@@ -31,9 +31,29 @@ type Provenance = {
   tool?: string;
 };
 
+type SkipCategory = "max_output_chars" | "expansion_ratio" | "error";
+
 type ConversionResult =
-  | { ok: true; xml: string; originalChars: number; outputChars: number }
-  | { ok: false; reason: string; originalChars: number; outputChars?: number };
+  | { ok: true; xml: string; originalChars: number; outputChars: number; expansionRatio: number }
+  | {
+      ok: false;
+      reason: string;
+      skipCategory: SkipCategory;
+      originalChars: number;
+      outputChars?: number;
+      expansionRatio?: number;
+    };
+
+type GuardEvent = {
+  id: number;
+  label: string;
+  outcome: "converted" | "skipped";
+  skipCategory?: SkipCategory;
+  originalChars: number;
+  outputChars: number;
+  expansionRatio: number;
+  provenance: Provenance;
+};
 
 type RecentItem = {
   id: number;
@@ -49,6 +69,7 @@ type ToolMeta = {
 
 const EXTENSION_NAME = "pi-mdxml-context";
 const MAX_RECENT = 20;
+const MAX_GUARD_EVENTS = 10;
 const MAX_COMPLETIONS = 40;
 const MAX_OUTPUT_CHARS = 50_000;
 const MAX_EXPANSION_RATIO = 2.0;
@@ -60,8 +81,15 @@ let cwd = process.cwd();
 let lastStats = { converted: 0, skipped: 0 };
 let activeStats = { converted: 0, skipped: 0 };
 let recentSeq = 0;
+let guardEventSeq = 0;
 const recent: RecentItem[] = [];
+const guardEvents: GuardEvent[] = [];
 const toolMetaByCallId = new Map<string, ToolMeta>();
+
+/** Compute output/original character ratio for guard diagnostics. */
+function expansionRatio(originalChars: number, outputChars: number): number {
+  return originalChars > 0 ? outputChars / originalChars : 0;
+}
 
 /** Escape XML special characters in text content. */
 function escapeText(value: string): string {
@@ -286,16 +314,85 @@ function convertMarkdown(markdown: string, provenance: Provenance): ConversionRe
       original_format: "markdown",
       converted_by: EXTENSION_NAME,
     })}>\n${body}\n</markdown_context>`;
-    if (xml.length > MAX_OUTPUT_CHARS) {
-      return { ok: false, reason: `output exceeds ${MAX_OUTPUT_CHARS} chars`, originalChars, outputChars: xml.length };
+    const outputChars = xml.length;
+    const ratio = expansionRatio(originalChars, outputChars);
+    if (outputChars > MAX_OUTPUT_CHARS) {
+      return {
+        ok: false,
+        reason: `output exceeds ${MAX_OUTPUT_CHARS} chars`,
+        skipCategory: "max_output_chars",
+        originalChars,
+        outputChars,
+        expansionRatio: ratio,
+      };
     }
-    if (xml.length > originalChars * MAX_EXPANSION_RATIO) {
-      return { ok: false, reason: `expansion ratio exceeds ${MAX_EXPANSION_RATIO}`, originalChars, outputChars: xml.length };
+    if (outputChars > originalChars * MAX_EXPANSION_RATIO) {
+      return {
+        ok: false,
+        reason: `expansion ratio exceeds ${MAX_EXPANSION_RATIO}`,
+        skipCategory: "expansion_ratio",
+        originalChars,
+        outputChars,
+        expansionRatio: ratio,
+      };
     }
-    return { ok: true, xml, originalChars, outputChars: xml.length };
+    return { ok: true, xml, originalChars, outputChars, expansionRatio: ratio };
   } catch (error) {
-    return { ok: false, reason: error instanceof Error ? error.message : String(error), originalChars };
+    return {
+      ok: false,
+      reason: error instanceof Error ? error.message : String(error),
+      skipCategory: "error",
+      originalChars,
+    };
   }
+}
+
+/** Record a recent Expansion Guard decision for status diagnostics. */
+function recordGuardEvent(result: ConversionResult, provenance: Provenance, label: string): void {
+  if (result.ok) {
+    guardEvents.unshift({
+      id: ++guardEventSeq,
+      label,
+      outcome: "converted",
+      originalChars: result.originalChars,
+      outputChars: result.outputChars,
+      expansionRatio: result.expansionRatio,
+      provenance,
+    });
+  } else {
+    guardEvents.unshift({
+      id: ++guardEventSeq,
+      label,
+      outcome: "skipped",
+      skipCategory: result.skipCategory,
+      originalChars: result.originalChars,
+      outputChars: result.outputChars ?? 0,
+      expansionRatio: result.expansionRatio ?? 0,
+      provenance,
+    });
+  }
+  guardEvents.splice(MAX_GUARD_EVENTS);
+}
+
+/** Format one guard event for concise status output. */
+function formatGuardEvent(event: GuardEvent): string {
+  const size = `${event.originalChars}→${event.outputChars}`;
+  const ratio = `${event.expansionRatio.toFixed(1)}x`;
+  if (event.outcome === "converted") return `converted ${size} (${ratio}) ${event.label}`;
+  return `${event.skipCategory} ${size} (${ratio}) ${event.label}`;
+}
+
+/** Build the /mdxml:status notification message. */
+function formatStatusMessage(): string {
+  const parts = [
+    `mdxml:${enabled ? "on" : "off"}`,
+    `last converted=${lastStats.converted}`,
+    `skipped=${lastStats.skipped}`,
+    `recent=${recent.length}`,
+  ];
+  const recentGuard = guardEvents.slice(0, 3).map(formatGuardEvent);
+  if (recentGuard.length > 0) parts.push(`guard: ${recentGuard.join("; ")}`);
+  return parts.join("; ");
 }
 
 /** Store a recently converted markdown payload for preview completions. */
@@ -400,13 +497,20 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
   const result = convertMarkdown(content, provenance);
   const preview = result.ok
     ? result.xml
-    : `<mdxml_skipped reason="${escapeAttr(result.reason)}" original_chars="${result.originalChars}" output_chars="${result.outputChars ?? ""}" />`;
+    : `<mdxml_skipped${attrs({
+        reason: result.reason,
+        skip_category: result.skipCategory,
+        original_chars: result.originalChars,
+        output_chars: result.outputChars,
+        expansion_ratio:
+          result.expansionRatio !== undefined ? Number(result.expansionRatio.toFixed(2)) : undefined,
+      })} />`;
   const edited = await ctx.ui.editor("mdxml preview", preview);
   if (edited === undefined) ctx.ui.notify("Preview closed", "info");
 }
 
 export { convertMarkdown };
-export type { ConversionResult, Provenance };
+export type { ConversionResult, GuardEvent, Provenance, SkipCategory };
 
 /** Register the pi-mdxml-context extension hooks and commands. */
 export default function piMdxmlContext(pi: ExtensionAPI): void {
@@ -424,6 +528,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
       const result = convertMarkdown(contextFile.content, { source: "context_file", path: contextFile.path });
       if (!result.ok) {
         activeStats.skipped += 1;
+        recordGuardEvent(result, { source: "context_file", path: contextFile.path }, contextFile.path);
         continue;
       }
       if (!systemPrompt.includes(contextFile.content)) {
@@ -432,6 +537,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
       }
       systemPrompt = systemPrompt.split(contextFile.content).join(result.xml);
       activeStats.converted += 1;
+      recordGuardEvent(result, { source: "context_file", path: contextFile.path }, contextFile.path);
     }
     updateStatus(ctx);
     return { systemPrompt };
@@ -462,9 +568,13 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
       const result = convertMarkdown(content, meta?.provenance ?? { source: "tool_result", path, tool: message.toolName });
       if (!result.ok) {
         activeStats.skipped += 1;
+        const provenance = meta?.provenance ?? { source: "tool_result", path, tool: message.toolName };
+        recordGuardEvent(result, provenance, provenance.path ?? provenance.tool ?? message.toolName ?? "tool_result");
         return message;
       }
       activeStats.converted += 1;
+      const provenance = meta?.provenance ?? { source: "tool_result", path, tool: message.toolName };
+      recordGuardEvent(result, provenance, provenance.path ?? provenance.tool ?? message.toolName ?? "tool_result");
       return { ...message, content: replaceTextContent(message.content, result.xml) };
     });
     endStats(ctx);
@@ -496,10 +606,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
     getArgumentCompletions: () => [],
     handler: async (_args: string, ctx: ExtensionCommandContext) => {
       updateStatus(ctx);
-      ctx.ui.notify(
-        `mdxml:${enabled ? "on" : "off"}; last converted=${lastStats.converted}; skipped=${lastStats.skipped}; recent=${recent.length}`,
-        "info",
-      );
+      ctx.ui.notify(formatStatusMessage(), "info");
     },
   });
 
