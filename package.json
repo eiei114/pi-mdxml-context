@@ -12,7 +12,8 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/converter.golden.test.ts tests/expansion-guard.observability.test.ts"
+    "test": "node --experimental-strip-types --test tests/converter.golden.test.ts tests/expansion-guard.observability.test.ts",
+    "version:check": "node scripts/check-version-bump.mjs"
   },
   "dependencies": {
     "remark-frontmatter": "^5.0.0",
