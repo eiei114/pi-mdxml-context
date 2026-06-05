@@ -50,8 +50,8 @@ type GuardEvent = {
   outcome: "converted" | "skipped";
   skipCategory?: SkipCategory;
   originalChars: number;
-  outputChars: number;
-  expansionRatio: number;
+  outputChars?: number;
+  expansionRatio?: number;
   provenance: Provenance;
 };
 
@@ -88,7 +88,8 @@ const toolMetaByCallId = new Map<string, ToolMeta>();
 
 /** Compute output/original character ratio for guard diagnostics. */
 function expansionRatio(originalChars: number, outputChars: number): number {
-  return originalChars > 0 ? outputChars / originalChars : 0;
+  if (originalChars === 0) return outputChars === 0 ? 1 : Infinity;
+  return outputChars / originalChars;
 }
 
 /** Escape XML special characters in text content. */
@@ -326,7 +327,7 @@ function convertMarkdown(markdown: string, provenance: Provenance): ConversionRe
         expansionRatio: ratio,
       };
     }
-    if (outputChars > originalChars * MAX_EXPANSION_RATIO) {
+    if (ratio > MAX_EXPANSION_RATIO) {
       return {
         ok: false,
         reason: `expansion ratio exceeds ${MAX_EXPANSION_RATIO}`,
@@ -366,8 +367,8 @@ function recordGuardEvent(result: ConversionResult, provenance: Provenance, labe
       outcome: "skipped",
       skipCategory: result.skipCategory,
       originalChars: result.originalChars,
-      outputChars: result.outputChars ?? 0,
-      expansionRatio: result.expansionRatio ?? 0,
+      outputChars: result.outputChars,
+      expansionRatio: result.expansionRatio,
       provenance,
     });
   }
@@ -376,10 +377,11 @@ function recordGuardEvent(result: ConversionResult, provenance: Provenance, labe
 
 /** Format one guard event for concise status output. */
 function formatGuardEvent(event: GuardEvent): string {
-  const size = `${event.originalChars}→${event.outputChars}`;
-  const ratio = `${event.expansionRatio.toFixed(1)}x`;
-  if (event.outcome === "converted") return `converted ${size} (${ratio}) ${event.label}`;
-  return `${event.skipCategory} ${size} (${ratio}) ${event.label}`;
+  const size = `${event.originalChars}→${event.outputChars !== undefined ? event.outputChars : "?"}`;
+  const ratioPart =
+    event.expansionRatio !== undefined ? ` (${event.expansionRatio.toFixed(1)}x)` : "";
+  if (event.outcome === "converted") return `converted ${size}${ratioPart} ${event.label}`;
+  return `${event.skipCategory} ${size}${ratioPart} ${event.label}`;
 }
 
 /** Build the /mdxml:status notification message. */
