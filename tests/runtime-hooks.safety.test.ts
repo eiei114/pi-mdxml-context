@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
@@ -140,7 +141,8 @@ describe("runtime hook safety", () => {
       details: undefined,
     } as ToolResultEvent;
 
-    await assert.doesNotReject(async () => handlers.tool_result?.(event));
+    assert.ok(handlers.tool_result);
+    await assert.doesNotReject(async () => handlers.tool_result(event));
   });
 
   it("context leaves image-only tool results unchanged", async () => {
@@ -211,7 +213,8 @@ describe("runtime hook safety", () => {
     };
     ctx.ui.editor = async () => undefined;
 
-    await preview.handler("definitely-missing-file.md", ctx);
+    const missingPath = `__missing-${randomUUID()}.md`;
+    await preview.handler(missingPath, ctx);
     assert.equal(notifications.length, 1);
     assert.equal(notifications[0]?.type, "error");
     assert.match(notifications[0]?.message ?? "", /Failed to read/);
