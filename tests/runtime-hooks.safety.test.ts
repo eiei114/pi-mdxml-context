@@ -141,8 +141,9 @@ describe("runtime hook safety", () => {
       details: undefined,
     } as ToolResultEvent;
 
-    assert.ok(handlers.tool_result);
-    await assert.doesNotReject(async () => handlers.tool_result(event));
+    const toolResult = handlers.tool_result;
+    assert.ok(toolResult);
+    await assert.doesNotReject(async () => toolResult(event));
   });
 
   it("context leaves image-only tool results unchanged", async () => {
