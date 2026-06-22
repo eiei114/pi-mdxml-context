@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-06-23
+
+### Changed
+
+- Harden Pi runtime hooks with typed extension events and safer optional-field handling.
+- Skip non-text tool results without throwing and guard preview/UI commands in non-interactive modes.
+- Add runtime hook safety tests for missing context data and image-only tool results.
+
 ## [0.1.2] - 2026-06-05
 
 ### Changed

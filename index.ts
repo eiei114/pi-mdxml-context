@@ -1,15 +1,25 @@
 import { existsSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, relative, resolve, sep } from "node:path";
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { ImageContent, TextContent, ToolResultMessage } from "@mariozechner/pi-ai";
+import type {
+  BeforeAgentStartEvent,
+  BeforeAgentStartEventResult,
+  ContextEvent,
+  ExtensionAPI,
+  ExtensionCommandContext,
+  ExtensionContext,
+  SessionStartEvent,
+  ToolResultEvent,
+} from "@mariozechner/pi-coding-agent";
+import type { AutocompleteItem } from "@mariozechner/pi-tui";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
 
-type ExtensionAPI = any;
-type ExtensionContext = any;
-type ExtensionCommandContext = any;
-type AutocompleteItem = { value: string; label: string; description?: string };
+type ToolContent = string | ReadonlyArray<TextContent | ImageContent>;
 
 type MdNode = {
   type: string;
@@ -138,27 +148,49 @@ function shouldConvert(content: string, path?: string): boolean {
 }
 
 /** Extract plain text from Pi tool result content shapes. */
-function extractTextContent(content: unknown): string | undefined {
+function extractTextContent(content: ToolContent | unknown): string | undefined {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return undefined;
   const textParts = content
-    .filter((part) => part && typeof part === "object" && (part as { type?: string }).type === "text")
-    .map((part) => (part as { text?: string }).text ?? "");
+    .filter((part): part is TextContent => part?.type === "text")
+    .map((part) => part.text ?? "");
   return textParts.length > 0 ? textParts.join("\n") : undefined;
 }
 
 /** Replace text parts in Pi tool result content while preserving structure. */
-function replaceTextContent(content: unknown, text: string): unknown {
+function replaceTextContent(content: ToolContent | unknown, text: string): ToolContent | unknown {
   if (typeof content === "string") return text;
   if (!Array.isArray(content)) return content;
   let replaced = false;
   const next = content.map((part) => {
-    if (!part || typeof part !== "object" || (part as { type?: string }).type !== "text") return part;
-    if (replaced) return { ...(part as object), text: "" };
+    if (part?.type !== "text") return part;
+    if (replaced) return { ...part, text: "" };
     replaced = true;
-    return { ...(part as object), text };
+    return { ...part, text };
   });
   return replaced ? next : [{ type: "text", text }];
+}
+
+/** Narrow agent messages to tool results for send-time conversion. */
+function isToolResultMessage(message: AgentMessage): message is ToolResultMessage {
+  return message.role === "toolResult";
+}
+
+/** Notify the user only when interactive UI is available. */
+function notifyUI(
+  ctx: ExtensionContext | ExtensionCommandContext,
+  message: string,
+  type: "info" | "warning" | "error" = "info",
+): void {
+  if (!ctx.hasUI) return;
+  ctx.ui.notify(message, type);
+}
+
+/** Read context files from optional system prompt options without throwing. */
+function getContextFiles(
+  options: BeforeAgentStartEvent["systemPromptOptions"] | undefined,
+): ReadonlyArray<{ path: string; content: string }> {
+  return options?.contextFiles ?? [];
 }
 
 /** Normalize Obsidian callout blockquote syntax before parsing. */
@@ -473,9 +505,11 @@ function previewCompletions(prefix: string): AutocompleteItem[] {
 
 /** Run /mdxml:preview for a file path or recent:N and show the result in an editor. */
 async function handlePreview(args: string, ctx: ExtensionCommandContext): Promise<void> {
+  if (!ctx.hasUI) return;
+
   const target = args.trim();
   if (!target) {
-    ctx.ui.notify("Usage: /mdxml:preview <path.md|recent:N>", "warning");
+    notifyUI(ctx, "Usage: /mdxml:preview <path.md|recent:N>", "warning");
     return;
   }
 
@@ -485,18 +519,27 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
   if (recentMatch) {
     const item = recent[Number(recentMatch[1]) - 1];
     if (!item) {
-      ctx.ui.notify(`No recent Markdown item: ${target}`, "error");
+      notifyUI(ctx, `No recent Markdown item: ${target}`, "error");
       return;
     }
     content = item.content;
     provenance = { ...item.provenance, source: "preview" };
   } else {
     const fullPath = resolvePreviewPath(target);
-    content = await readFile(fullPath, "utf8");
+    try {
+      content = await readFile(fullPath, "utf8");
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      notifyUI(ctx, `Failed to read ${target}: ${reason}`, "error");
+      return;
+    }
     provenance = { source: "preview", path: relative(cwd, fullPath).split(sep).join("/") };
   }
 
   const result = convertMarkdown(content, provenance);
+  if (!result.ok) {
+    notifyUI(ctx, `Preview skipped: ${result.reason}`, "warning");
+  }
   const preview = result.ok
     ? result.xml
     : `<mdxml_skipped${attrs({
@@ -507,8 +550,13 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
         expansion_ratio:
           result.expansionRatio !== undefined ? Number(result.expansionRatio.toFixed(2)) : undefined,
       })} />`;
-  const edited = await ctx.ui.editor("mdxml preview", preview);
-  if (edited === undefined) ctx.ui.notify("Preview closed", "info");
+  try {
+    const edited = await ctx.ui.editor("mdxml preview", preview);
+    if (edited === undefined) notifyUI(ctx, "Preview closed", "info");
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    notifyUI(ctx, `Preview editor failed: ${reason}`, "error");
+  }
 }
 
 export { convertMarkdown };
@@ -516,36 +564,40 @@ export type { ConversionResult, GuardEvent, Provenance, SkipCategory };
 
 /** Register the pi-mdxml-context extension hooks and commands. */
 export default function piMdxmlContext(pi: ExtensionAPI): void {
-  pi.on("session_start", (_event: any, ctx: ExtensionContext) => {
+  pi.on("session_start", (_event: SessionStartEvent, ctx: ExtensionContext) => {
     cwd = ctx.cwd;
     updateStatus(ctx);
   });
 
-  pi.on("before_agent_start", (event: any, ctx: ExtensionContext) => {
-    beginStats();
-    if (!enabled) return;
-    let systemPrompt = event.systemPrompt;
-    for (const contextFile of event.systemPromptOptions.contextFiles ?? []) {
-      if (!isMarkdownPath(contextFile.path)) continue;
-      const result = convertMarkdown(contextFile.content, { source: "context_file", path: contextFile.path });
-      if (!result.ok) {
-        activeStats.skipped += 1;
+  pi.on(
+    "before_agent_start",
+    (event: BeforeAgentStartEvent, ctx: ExtensionContext): BeforeAgentStartEventResult | void => {
+      beginStats();
+      if (!enabled) return;
+      let systemPrompt = typeof event.systemPrompt === "string" ? event.systemPrompt : "";
+      for (const contextFile of getContextFiles(event.systemPromptOptions)) {
+        if (!contextFile?.path || typeof contextFile.content !== "string") continue;
+        if (!isMarkdownPath(contextFile.path)) continue;
+        const result = convertMarkdown(contextFile.content, { source: "context_file", path: contextFile.path });
+        if (!result.ok) {
+          activeStats.skipped += 1;
+          recordGuardEvent(result, { source: "context_file", path: contextFile.path }, contextFile.path);
+          continue;
+        }
+        if (!systemPrompt.includes(contextFile.content)) {
+          activeStats.skipped += 1;
+          continue;
+        }
+        systemPrompt = systemPrompt.split(contextFile.content).join(result.xml);
+        activeStats.converted += 1;
         recordGuardEvent(result, { source: "context_file", path: contextFile.path }, contextFile.path);
-        continue;
       }
-      if (!systemPrompt.includes(contextFile.content)) {
-        activeStats.skipped += 1;
-        continue;
-      }
-      systemPrompt = systemPrompt.split(contextFile.content).join(result.xml);
-      activeStats.converted += 1;
-      recordGuardEvent(result, { source: "context_file", path: contextFile.path }, contextFile.path);
-    }
-    updateStatus(ctx);
-    return { systemPrompt };
-  });
+      updateStatus(ctx);
+      return { systemPrompt };
+    },
+  );
 
-  pi.on("tool_result", (event: any) => {
+  pi.on("tool_result", (event: ToolResultEvent) => {
     const content = extractTextContent(event.content);
     if (!content) return;
     const path = getInputPath(event.input);
@@ -555,13 +607,13 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
     addRecent(content, provenance);
   });
 
-  pi.on("context", (event: any, ctx: ExtensionContext) => {
+  pi.on("context", (event: ContextEvent, ctx: ExtensionContext): { messages?: AgentMessage[] } | void => {
     if (!enabled) {
       endStats(ctx);
       return;
     }
-    const messages = event.messages.map((message: any) => {
-      if (message?.role !== "toolResult") return message;
+    const messages = event.messages.map((message: AgentMessage) => {
+      if (!isToolResultMessage(message)) return message;
       const content = extractTextContent(message.content);
       if (!content) return message;
       const meta = toolMetaByCallId.get(message.toolCallId);
@@ -577,7 +629,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
       activeStats.converted += 1;
       const provenance = meta?.provenance ?? { source: "tool_result", path, tool: message.toolName };
       recordGuardEvent(result, provenance, provenance.path ?? provenance.tool ?? message.toolName ?? "tool_result");
-      return { ...message, content: replaceTextContent(message.content, result.xml) };
+      return { ...message, content: replaceTextContent(message.content, result.xml) as ToolResultMessage["content"] };
     });
     endStats(ctx);
     return { messages };
@@ -589,7 +641,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
     handler: async (_args: string, ctx: ExtensionCommandContext) => {
       enabled = true;
       updateStatus(ctx);
-      ctx.ui.notify("mdxml conversion enabled", "info");
+      notifyUI(ctx, "mdxml conversion enabled", "info");
     },
   });
 
@@ -599,7 +651,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
     handler: async (_args: string, ctx: ExtensionCommandContext) => {
       enabled = false;
       updateStatus(ctx);
-      ctx.ui.notify("mdxml conversion disabled", "info");
+      notifyUI(ctx, "mdxml conversion disabled", "info");
     },
   });
 
@@ -608,7 +660,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
     getArgumentCompletions: () => [],
     handler: async (_args: string, ctx: ExtensionCommandContext) => {
       updateStatus(ctx);
-      ctx.ui.notify(formatStatusMessage(), "info");
+      notifyUI(ctx, formatStatusMessage(), "info");
     },
   });
 
