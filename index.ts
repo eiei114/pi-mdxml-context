@@ -81,6 +81,7 @@ const EXTENSION_NAME = "pi-mdxml-context";
 const MAX_RECENT = 20;
 const MAX_GUARD_EVENTS = 10;
 const MAX_COMPLETIONS = 40;
+const MAX_TOOL_META = 50;
 const MAX_OUTPUT_CHARS = 50_000;
 const MAX_EXPANSION_RATIO = 2.0;
 
@@ -453,21 +454,40 @@ function endStats(ctx: ExtensionContext): void {
   updateStatus(ctx);
 }
 
-/** Read an optional path field from tool input, stripping a leading @. */
+/** Normalize preview paths and autocomplete prefixes for cwd-relative resolution. */
+function normalizePreviewArg(arg: string): string {
+  return arg.trim().replace(/^@/, "").replace(/\\/g, "/").replace(/\/\/+/g, "/");
+}
+
+/** Read an optional path field from tool input with preview path normalization. */
 function getInputPath(input: Record<string, unknown>): string | undefined {
   const raw = input.path;
-  return typeof raw === "string" ? raw.replace(/^@/, "") : undefined;
+  return typeof raw === "string" ? normalizePreviewArg(raw) : undefined;
 }
 
 /** Resolve a preview command argument to an absolute path under cwd. */
-function resolvePreviewPath(arg: string): string {
-  const clean = arg.replace(/^@/, "");
-  return resolve(cwd, clean);
+function resolvePreviewPath(arg: string, baseCwd = cwd): string {
+  return resolve(baseCwd, normalizePreviewArg(arg));
+}
+
+/** Store tool metadata for send-time replacement with bounded retention. */
+function storeToolMeta(toolCallId: string, meta: ToolMeta): void {
+  toolMetaByCallId.set(toolCallId, meta);
+  while (toolMetaByCallId.size > MAX_TOOL_META) {
+    const oldest = toolMetaByCallId.keys().next().value;
+    if (oldest === undefined) break;
+    toolMetaByCallId.delete(oldest);
+  }
+}
+
+/** Drop tool metadata after send-time replacement or eviction. */
+function purgeToolMeta(toolCallId: string): void {
+  toolMetaByCallId.delete(toolCallId);
 }
 
 /** Collect markdown file paths under cwd for autocomplete, up to a depth limit. */
 function findMarkdownFiles(prefix: string): AutocompleteItem[] {
-  const normalizedPrefix = prefix.replace(/^@/, "").replace(/\\/g, "/");
+  const normalizedPrefix = normalizePreviewArg(prefix);
   const results: AutocompleteItem[] = [];
   const ignored = new Set([".git", ".obsidian", "node_modules", ".pi", ".claude"]);
 
@@ -525,7 +545,7 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
     content = item.content;
     provenance = { ...item.provenance, source: "preview" };
   } else {
-    const fullPath = resolvePreviewPath(target);
+    const fullPath = resolvePreviewPath(target, ctx.cwd);
     try {
       content = await readFile(fullPath, "utf8");
     } catch (error) {
@@ -533,7 +553,7 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
       notifyUI(ctx, `Failed to read ${target}: ${reason}`, "error");
       return;
     }
-    provenance = { source: "preview", path: relative(cwd, fullPath).split(sep).join("/") };
+    provenance = { source: "preview", path: relative(ctx.cwd, fullPath).split(sep).join("/") };
   }
 
   const result = convertMarkdown(content, provenance);
@@ -559,7 +579,8 @@ async function handlePreview(args: string, ctx: ExtensionCommandContext): Promis
   }
 }
 
-export { convertMarkdown };
+export { convertMarkdown, normalizePreviewArg };
+export { MAX_COMPLETIONS, MAX_RECENT, MAX_TOOL_META };
 export type { ConversionResult, GuardEvent, Provenance, SkipCategory };
 
 /** Register the pi-mdxml-context extension hooks and commands. */
@@ -603,7 +624,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
     const path = getInputPath(event.input);
     if (!shouldConvert(content, path)) return;
     const provenance: Provenance = { source: "tool_result", path, tool: event.toolName };
-    toolMetaByCallId.set(event.toolCallId, { content, provenance });
+    storeToolMeta(event.toolCallId, { content, provenance });
     addRecent(content, provenance);
   });
 
@@ -624,11 +645,13 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
         activeStats.skipped += 1;
         const provenance = meta?.provenance ?? { source: "tool_result", path, tool: message.toolName };
         recordGuardEvent(result, provenance, provenance.path ?? provenance.tool ?? message.toolName ?? "tool_result");
+        purgeToolMeta(message.toolCallId);
         return message;
       }
       activeStats.converted += 1;
       const provenance = meta?.provenance ?? { source: "tool_result", path, tool: message.toolName };
       recordGuardEvent(result, provenance, provenance.path ?? provenance.tool ?? message.toolName ?? "tool_result");
+      purgeToolMeta(message.toolCallId);
       return { ...message, content: replaceTextContent(message.content, result.xml) as ToolResultMessage["content"] };
     });
     endStats(ctx);

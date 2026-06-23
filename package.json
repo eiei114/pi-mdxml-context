@@ -1,6 +1,6 @@
 {
   "name": "pi-mdxml-context",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"
@@ -12,7 +12,7 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/converter.golden.test.ts tests/expansion-guard.observability.test.ts tests/runtime-hooks.safety.test.ts",
+    "test": "node --experimental-strip-types --test tests/converter.golden.test.ts tests/expansion-guard.observability.test.ts tests/runtime-hooks.safety.test.ts tests/preview-recent-store.test.ts",
     "version:check": "node scripts/check-version-bump.mjs"
   },
   "dependencies": {
