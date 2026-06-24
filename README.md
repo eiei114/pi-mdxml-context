@@ -4,6 +4,10 @@ Pi extension that converts Markdown context into XML-like structure at model sen
 
 It is meant for agent workflows where Markdown files are convenient for humans, but explicit XML-like boundaries can make complex context easier for models to parse.
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the maintenance direction (stabilization, performance/token efficiency, design boundaries, template compliance, and public-release quality) and the candidate maintenance seeds.
+
 ## Features
 
 - Converts Markdown context files before model requests
