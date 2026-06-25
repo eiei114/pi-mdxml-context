@@ -1,6 +1,6 @@
 {
   "name": "pi-mdxml-context",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"

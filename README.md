@@ -97,6 +97,36 @@ npm install
 npm run check
 ```
 
+## Release
+
+Publishing is automated through GitHub Actions:
+
+1. Merge a version bump in `package.json` to `main`.
+2. **Auto Release** validates the package, creates the semver tag, and opens a GitHub release.
+3. Auto Release dispatches **Publish to npm** (`publish.yml`) for that tag.
+4. Publish uses npm OIDC trusted publishing (`id-token: write`); no `NPM_TOKEN` secret is required.
+
+### Verify tag to npm publish
+
+After a release tag is created:
+
+```sh
+# Confirm Auto Release dispatched publish for the tag
+gh run list --workflow publish.yml --limit 5
+
+# Inspect the publish run for the tag
+gh run view <run-id> --log
+
+# Confirm the package version is on npm
+npm view pi-mdxml-context@<version> version
+```
+
+For a manual publish check, dispatch publish from the tag:
+
+```sh
+gh workflow run publish.yml --ref v<version> -f ref=v<version>
+```
+
 ## License
 
 MIT
