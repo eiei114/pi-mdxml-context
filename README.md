@@ -99,6 +99,8 @@ npm run check
 
 ## Release
 
+See [CHANGELOG.md](CHANGELOG.md) for semver history.
+
 Publishing is automated through GitHub Actions:
 
 1. Merge a version bump in `package.json` to `main`.
@@ -126,6 +128,10 @@ For a manual publish check, dispatch publish from the tag:
 ```sh
 gh workflow run publish.yml --ref v<version> -f ref=v<version>
 ```
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## License
 
