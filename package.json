@@ -1,6 +1,6 @@
 {
   "name": "pi-mdxml-context",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"
@@ -46,6 +46,8 @@
   "homepage": "https://github.com/eiei114/pi-mdxml-context",
   "files": [
     "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
     "LICENSE",
     "index.ts"
   ],
