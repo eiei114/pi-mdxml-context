@@ -1,137 +1,138 @@
 # pi-mdxml-context
 
-Pi extension that converts Markdown context into XML-like structure at model send time, while keeping the original Markdown in the session history.
+[![CI](https://github.com/eiei114/pi-mdxml-context/actions/workflows/ci.yml/badge.svg)](https://github.com/eiei114/pi-mdxml-context/actions/workflows/ci.yml)
+[![Publish](https://github.com/eiei114/pi-mdxml-context/actions/workflows/publish.yml/badge.svg)](https://github.com/eiei114/pi-mdxml-context/actions/workflows/publish.yml)
+[![npm version](https://img.shields.io/npm/v/pi-mdxml-context.svg)](https://www.npmjs.com/package/pi-mdxml-context)
+[![npm downloads](https://img.shields.io/npm/dm/pi-mdxml-context.svg)](https://www.npmjs.com/package/pi-mdxml-context)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Pi package](https://img.shields.io/badge/pi-package-purple.svg)](https://pi.dev/packages)
+[![Trusted Publishing](https://img.shields.io/badge/npm-Trusted%20Publishing-blue.svg)](docs/release.md)
 
-It is meant for agent workflows where Markdown files are convenient for humans, but explicit XML-like boundaries can make complex context easier for models to parse.
+> Convert Markdown context to XML-like structure at model send time while keeping the original Markdown in session history.
 
-## Roadmap
+## What this is
 
-See [ROADMAP.md](ROADMAP.md) for the maintenance direction (stabilization, performance/token efficiency, design boundaries, template compliance, and public-release quality) and the candidate maintenance seeds.
+`pi-mdxml-context` is a Pi extension for agent workflows where Markdown is convenient for humans, but explicit XML-like boundaries can make complex context easier for models to parse.
+
+It converts loaded Markdown context files and recent Markdown tool results before each model request. Saved session history stays in Markdown; conversion happens only in the provider-bound context.
 
 ## Features
 
-- Converts Markdown context files before model requests
-- Converts Markdown tool results without mutating saved session history
-- Preserves source metadata on the generated XML root element
-- Supports frontmatter, GFM, code blocks, tables, wikilinks, and Obsidian-style callouts
-- Provides preview and A/B toggle commands
-- Skips conversion when XML output grows too large
-
-## How it works
-
-The extension uses Pi runtime hooks:
-
-- `before_agent_start` converts loaded Markdown context files.
-- `tool_result` tracks recently-read Markdown content.
-- `context` converts Markdown tool results only in the provider-bound context.
-
-The session still stores the original Markdown. Conversion happens only for the model request.
+- Converts Markdown context files before model requests.
+- Converts Markdown tool results without mutating saved session history.
+- Preserves source metadata on the generated XML root element.
+- Supports frontmatter, GFM, code blocks, tables, wikilinks, and Obsidian-style callouts.
+- Provides preview and on/off toggle commands.
+- Skips conversion when XML output grows too large.
 
 ## Install
 
-Clone or copy this project into a Pi extension location, for example:
+Install the published npm package with Pi:
 
-```text
-.pi/extensions/pi-mdxml-context/
+```bash
+pi install npm:pi-mdxml-context
 ```
 
-Then install dependencies:
+Pin a specific version when you want reproducible installs:
 
-```sh
-npm install
+```bash
+pi install npm:pi-mdxml-context@0.1.9
 ```
 
-Reload Pi:
+Install into the current project instead of your user Pi settings:
+
+```bash
+pi install npm:pi-mdxml-context -l
+```
+
+Or install from GitHub:
+
+```bash
+pi install git:github.com/eiei114/pi-mdxml-context
+```
+
+Try it without permanently installing:
+
+```bash
+pi -e npm:pi-mdxml-context
+```
+
+## Quick start
+
+After install, reload Pi if needed:
 
 ```text
 /reload
 ```
 
-Pi loads the extension from `package.json` via:
+Check that conversion is active:
 
-```json
-{
-  "pi": {
-    "extensions": ["./index.ts"]
-  }
-}
+```text
+/mdxml:status
 ```
 
-## Commands
+Preview XML-like output for a Markdown file:
+
+```text
+/mdxml:preview path/to/file.md
+```
+
+For commands, output shape, runtime hooks, and safety behavior, see [`docs/usage.md`](docs/usage.md).
+
+## Usage summary
 
 | Command | Description |
 | --- | --- |
 | `/mdxml:on` | Enable send-time conversion. |
 | `/mdxml:off` | Disable send-time conversion. |
 | `/mdxml:status` | Show conversion state and recent stats. |
-| `/mdxml:preview path/to/file.md` | Preview XML-like output for a Markdown file. |
-| `/mdxml:preview recent:1` | Preview XML-like output for the most recent Markdown tool result. |
+| `/mdxml:preview <path>` | Preview XML-like output for a Markdown file. |
+| `/mdxml:preview recent:N` | Preview XML-like output for a recent Markdown tool result. |
 
-Preview arguments support completion for Markdown paths and `recent:N` targets.
+Conversion is enabled by default after the extension loads. Use `/mdxml:off` to disable it immediately.
 
-## Output shape
+## Package contents
 
-Example root element:
-
-```xml
-<markdown_context source="tool_result" path="docs/example.md" tool="read" original_format="markdown" converted_by="pi-mdxml-context">
-  <section depth="1" title="Example">
-    <paragraph>Hello <strong>world</strong>.</paragraph>
-  </section>
-</markdown_context>
-```
-
-The output is strict-ish XML: a single root, escaped text, escaped attributes, and fixed tag names. Schema validation is intentionally out of scope for the first version.
-
-## Safety notes
-
-- Conversion is enabled by default after the extension loads.
-- `/mdxml:off` disables conversion immediately.
-- The extension does not rewrite saved session messages.
-- Large conversions are skipped when output exceeds the configured expansion guard.
+| Path | Purpose |
+| --- | --- |
+| `index.ts` | Pi TypeScript extension entrypoint |
+| `tests/` | Converter, runtime hook, and preview tests |
+| `docs/` | Usage and release docs (`usage.md`, `release.md`) |
+| `README.md` | Public entrypoint (this file) |
+| `CHANGELOG.md` | Version history |
+| `SECURITY.md` | Vulnerability reporting |
+| `LICENSE` | MIT license |
 
 ## Development
 
-```sh
+```bash
 npm install
 npm run check
+npm test
 ```
+
+Before opening a PR with publishable changes, bump `package.json` and update `CHANGELOG.md` in the same PR. CI runs `npm run version:check` on pull requests.
 
 ## Release
 
-See [CHANGELOG.md](CHANGELOG.md) for semver history.
+This package uses npm Trusted Publishing with GitHub Actions OIDC — no `NPM_TOKEN` is required.
 
-Publishing is automated through GitHub Actions:
+On `main`, a version bump in `package.json` triggers **Auto Release**, which creates the semver tag and GitHub Release, then dispatches **Publish to npm** (`publish.yml`).
 
-1. Merge a version bump in `package.json` to `main`.
-2. **Auto Release** validates the package, creates the semver tag, and opens a GitHub release.
-3. Auto Release dispatches **Publish to npm** (`publish.yml`) for that tag.
-4. Publish uses npm OIDC trusted publishing (`id-token: write`); no `NPM_TOKEN` secret is required.
-
-### Verify tag to npm publish
-
-After a release tag is created:
-
-```sh
-# Confirm Auto Release dispatched publish for the tag
-gh run list --workflow publish.yml --limit 5
-
-# Inspect the publish run for the tag
-gh run view <run-id> --log
-
-# Confirm the package version is on npm
-npm view pi-mdxml-context@<version> version
-```
-
-For a manual publish check, dispatch publish from the tag:
-
-```sh
-gh workflow run publish.yml --ref v<version> -f ref=v<version>
-```
+See [`docs/release.md`](docs/release.md) for setup details and tag-to-npm verification steps. See [`CHANGELOG.md`](CHANGELOG.md) for semver history.
 
 ## Security
 
-See [SECURITY.md](SECURITY.md) for vulnerability reporting.
+Pi packages run with your local permissions. Review extensions before installing third-party packages.
+
+For vulnerability reporting, see [`SECURITY.md`](SECURITY.md).
+
+## Links
+
+- npm: https://www.npmjs.com/package/pi-mdxml-context
+- GitHub: https://github.com/eiei114/pi-mdxml-context
+- Issues: https://github.com/eiei114/pi-mdxml-context/issues
+- Roadmap: [ROADMAP.md](ROADMAP.md)
 
 ## License
 
