@@ -100,6 +100,8 @@ Conversion is enabled by default after the extension loads. Use `/mdxml:off` to 
 | `docs/` | Usage and release docs (`usage.md`, `release.md`) |
 | `README.md` | Public entrypoint (this file) |
 | `CHANGELOG.md` | Version history |
+| `CODE_OF_CONDUCT.md` | Contributor Covenant code of conduct |
+| `CONTRIBUTING.md` | Contribution guidelines |
 | `SECURITY.md` | Vulnerability reporting |
 | `LICENSE` | MIT license |
 

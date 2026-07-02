@@ -1,6 +1,6 @@
 {
   "name": "pi-mdxml-context",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"
@@ -47,6 +47,8 @@
   "files": [
     "README.md",
     "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
     "SECURITY.md",
     "LICENSE",
     "index.ts"
