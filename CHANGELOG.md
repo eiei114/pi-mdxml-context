@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2026-07-02
+
+### Added
+
+- Add `CODE_OF_CONDUCT.md` (Contributor Covenant v2.1) for community guidelines.
+- Add `CONTRIBUTING.md` with development setup, PR guidelines, and testing instructions.
+- Ship `CODE_OF_CONDUCT.md` and `CONTRIBUTING.md` in the npm package.
+
+### Changed
+
+- Update README package contents table to list the new community files.
+
 ## [0.1.9] - 2026-07-01
 
 ### Changed
