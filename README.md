@@ -4,6 +4,8 @@ Pi extension that converts Markdown context into XML-like structure at model sen
 
 It is meant for agent workflows where Markdown files are convenient for humans, but explicit XML-like boundaries can make complex context easier for models to parse.
 
+<a href="https://buymeacoffee.com/ekawano114m"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60"></a>
+
 ## Features
 
 - Converts Markdown context files before model requests
