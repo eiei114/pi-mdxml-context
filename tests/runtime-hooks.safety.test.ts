@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -240,4 +240,23 @@ describe("runtime hook safety", () => {
     await preview.handler("recent:1", ctx);
     assert.ok(notifications.some((entry) => entry.type === "error" && /editor failed/i.test(entry.message)));
   });
+});
+
+describe("workflow action versions", () => {
+  const workflowsDir = join(__dirname, "..", ".github", "workflows");
+
+  for (const file of readdirSync(workflowsDir)) {
+    if (!file.endsWith(".yml") && !file.endsWith(".yaml")) continue;
+    it(`${file} pins checkout and setup-node to v6 when used`, () => {
+      const content = readFileSync(join(workflowsDir, file), "utf8");
+      if (content.includes("actions/checkout@")) {
+        assert.match(content, /actions\/checkout@v6\b/);
+        assert.doesNotMatch(content, /actions\/checkout@v[0-5]\b/);
+      }
+      if (content.includes("actions/setup-node@")) {
+        assert.match(content, /actions\/setup-node@v6\b/);
+        assert.doesNotMatch(content, /actions\/setup-node@v[0-5]\b/);
+      }
+    });
+  }
 });
