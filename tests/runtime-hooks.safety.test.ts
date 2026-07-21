@@ -244,18 +244,16 @@ describe("runtime hook safety", () => {
 
 describe("roadmap snapshot accuracy", () => {
   const repoRoot = join(__dirname, "..");
+  const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as { version: string };
+  const roadmap = readFileSync(join(repoRoot, "ROADMAP.md"), "utf8");
 
   it("matches package.json version in the current state snapshot table", () => {
-    const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as { version: string };
-    const roadmap = readFileSync(join(repoRoot, "ROADMAP.md"), "utf8");
     const match = roadmap.match(/\|\s*Version \(`package\.json`\)\s*\|\s*`([^`]+)`\s*\|/);
     assert.ok(match, "ROADMAP snapshot must include a package.json version row");
     assert.equal(match[1], pkg.version);
   });
 
   it("documents npm latest matching package.json in the snapshot table", () => {
-    const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as { version: string };
-    const roadmap = readFileSync(join(repoRoot, "ROADMAP.md"), "utf8");
     const match = roadmap.match(/\|\s*Latest published on npm\s*\|\s*`([^`]+)`/);
     assert.ok(match, "ROADMAP snapshot must include a latest npm version row");
     assert.equal(match[1], pkg.version);
