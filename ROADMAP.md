@@ -97,7 +97,7 @@ triaged, unknown-node behavior documented.
 - [x] `package.json` declares `pi.extensions`, `files`, keywords, repo/homepage.
 - [x] `README.md` documents features, commands, output shape, development.
 - [x] `CHANGELOG.md` follows Keep a Changelog and is updated with publishable changes.
-- [ ] `SECURITY.md` present (template default; **missing today — seed `01`**).
+- [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).
 - [ ] Release pipeline publishes every validated version (**seed `07`**).
@@ -115,8 +115,8 @@ must not be auto-implemented.
 
 ```markdown
 ---
-ready_for_multica: true
-status: todo
+ready_for_multica: false
+status: done
 project_key: pi-mdxml-context
 issue_type: template-compliance
 source_roadmap: pi-mdxml-context/ROADMAP.md
@@ -124,21 +124,19 @@ sequence_index: 1
 sequence_total: 7
 blocked_by: []
 unblocks: []
-pr_required: true
+pr_required: false
 pr_allowed: true
 release_allowed: false
 production_allowed: false
-version_bump_required: true
-version_bump_type: patch
-version_bump_reason: "SECURITY.md is a template-default publishable path per scripts/check-version-bump.mjs"
-package_publish_expected: true
+version_bump_required: false
+version_bump_type: none
+version_bump_reason: "SECURITY.md already present; checklist updated in DOT-1261"
+package_publish_expected: false
 work_owner: ai
 ---
-Add a SECURITY.md with a supported-versions table (track latest `0.1.x`) and a
-coordinated-disclosure policy (report via GitHub Security Advisories / private
-contact, no public issue for vulnerabilities). Acceptance: file exists,
-README optionally links it, `npm run version:check` passes (patch bump +
-CHANGELOG entry).
+**Done** — `SECURITY.md` is present, ships via `package.json` `files`, and README
+links it under Security. No further action unless the disclosure policy needs
+revision.
 ```
 
 ### 02 — Document public API surface and npm install path (design boundary / public quality)
