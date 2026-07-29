@@ -265,6 +265,8 @@ describe("roadmap snapshot accuracy", () => {
     const row = roadmap.match(/- \[[ x]\] `SECURITY\.md` present[^\n]*/);
     assert.ok(row, "ROADMAP checklist must include a SECURITY.md row");
     assert.match(row[0], /^- \[x\]/, "SECURITY.md checklist row must be checked when the file exists");
+    assert.match(row[0], /shipped in `package\.json` `files`/, "SECURITY.md row must document package publication");
+    assert.match(row[0], /linked from README/, "SECURITY.md row must document the README link");
     assert.doesNotMatch(row[0], /missing today/i, "SECURITY.md row must not claim the file is missing");
   });
 });
