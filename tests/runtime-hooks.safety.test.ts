@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -257,6 +257,15 @@ describe("roadmap snapshot accuracy", () => {
     const match = roadmap.match(/\|\s*Latest published on npm\s*\|\s*`([^`]+)`/);
     assert.ok(match, "ROADMAP snapshot must include a latest npm version row");
     assert.equal(match[1], pkg.version);
+  });
+
+  it("marks SECURITY.md present when the file exists", () => {
+    const securityPath = join(repoRoot, "SECURITY.md");
+    assert.ok(existsSync(securityPath), "SECURITY.md must exist for this assertion");
+    const row = roadmap.match(/- \[[ x]\] `SECURITY\.md` present[^\n]*/);
+    assert.ok(row, "ROADMAP checklist must include a SECURITY.md row");
+    assert.match(row[0], /^- \[x\]/, "SECURITY.md checklist row must be checked when the file exists");
+    assert.doesNotMatch(row[0], /missing today/i, "SECURITY.md row must not claim the file is missing");
   });
 });
 
