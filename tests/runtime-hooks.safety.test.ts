@@ -244,8 +244,12 @@ describe("runtime hook safety", () => {
 
 describe("roadmap snapshot accuracy", () => {
   const repoRoot = join(__dirname, "..");
-  const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as { version: string };
+  const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as {
+    version: string;
+    files?: string[];
+  };
   const roadmap = readFileSync(join(repoRoot, "ROADMAP.md"), "utf8");
+  const readme = readFileSync(join(repoRoot, "README.md"), "utf8");
 
   it("matches package.json version in the current state snapshot table", () => {
     const match = roadmap.match(/\|\s*Version \(`package\.json`\)\s*\|\s*`([^`]+)`\s*\|/);
@@ -268,6 +272,15 @@ describe("roadmap snapshot accuracy", () => {
     assert.match(row[0], /shipped in `package\.json` `files`/, "SECURITY.md row must document package publication");
     assert.match(row[0], /linked from README/, "SECURITY.md row must document the README link");
     assert.doesNotMatch(row[0], /missing today/i, "SECURITY.md row must not claim the file is missing");
+    assert.ok(
+      Array.isArray(pkg.files) && pkg.files.includes("SECURITY.md"),
+      "package.json files must include SECURITY.md",
+    );
+    assert.match(
+      readme,
+      /\[[^\]]*\]\(SECURITY\.md\)/,
+      "README must include a markdown link targeting SECURITY.md",
+    );
   });
 });
 
