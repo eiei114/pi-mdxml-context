@@ -263,6 +263,12 @@ describe("roadmap snapshot accuracy", () => {
     assert.equal(match[1], pkg.version);
   });
 
+  it("documents npm publish gap closure through package.json version in Phase 3", () => {
+    const match = roadmap.match(/0\.1\.3–(0\.1\.\d+) are on npm/);
+    assert.ok(match, "ROADMAP Phase 3 must document the resolved npm publish gap range");
+    assert.equal(match[1], pkg.version, "Phase 3 npm range must end at the current package.json version");
+  });
+
   it("marks SECURITY.md present when the file exists", () => {
     const securityPath = join(repoRoot, "SECURITY.md");
     assert.ok(existsSync(securityPath), "SECURITY.md must exist for this assertion");
