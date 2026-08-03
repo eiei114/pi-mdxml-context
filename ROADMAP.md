@@ -34,8 +34,8 @@ broadening the feature surface.
 
 | Area | State |
 | --- | --- |
-| Version (`package.json`) | `0.1.12` |
-| Latest published on npm | `0.1.12` (matches `package.json`; Trusted Publishing via `publish.yml`) |
+| Version (`package.json`) | `0.1.13` |
+| Latest published on npm | `0.1.13` (matches `package.json`; Trusted Publishing via `publish.yml`) |
 | Public source surface | `index.ts` (single file); exports `convertMarkdown`, `normalizePreviewArg`, `MAX_COMPLETIONS`, `MAX_RECENT`, `MAX_TOOL_META`, and types `ConversionResult`, `GuardEvent`, `Provenance`, `SkipCategory` |
 | Runtime hooks | `session_start`, `before_agent_start`, `tool_result`, `context` |
 | Commands | `mdxml:on`, `mdxml:off`, `mdxml:status`, `mdxml:preview` |
