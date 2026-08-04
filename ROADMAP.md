@@ -79,7 +79,7 @@ unchanged settings, configurability behind default-preserving options.
 
 Close remaining edge-case and template-compliance loops.
 
-- ~~Resolve the npm publish gap (0.1.3–0.1.5)~~ **Done** — 0.1.3–0.1.12 are on npm; keep monitoring the release pipeline publishes what CI validates.
+- ~~Resolve the npm publish gap (0.1.3–0.1.5)~~ **Done** — 0.1.3–0.1.13 are on npm; keep monitoring the release pipeline publishes what CI validates.
 - Run a template-compliance audit against `pi-extension-template` and file
   focused follow-ups for any remaining gaps.
 - Decide handling for nodes the converter currently passes through as generic
