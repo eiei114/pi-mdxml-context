@@ -271,6 +271,24 @@ describe("roadmap snapshot accuracy", () => {
     assert.equal(match[1], pkg.version, "Phase 3 npm range must end at the current package.json version");
   });
 
+  it("does not keep stale npm publish-gap investigation text in seed 07", () => {
+    assert.doesNotMatch(
+      roadmap,
+      /npm registry latest\s+is 0\.1\.2 while package\.json is 0\.1\.5/,
+      "seed 07 must not reference the resolved 0.1.2/0.1.5 npm publish-gap investigation",
+    );
+    const seed07 = roadmap.match(/### 07[\s\S]*?```markdown[\s\S]*?```/);
+    assert.ok(seed07, "ROADMAP must include seed 07 block");
+    assert.match(
+      seed07[0],
+      /npm publish-gap investigation is \*\*resolved\*\*/i,
+      "seed 07 must document the resolved npm publish gap",
+    );
+    const releaseRow = roadmap.match(/- \[[ x]\] Release pipeline publishes every validated version[^\n]*/);
+    assert.ok(releaseRow, "ROADMAP checklist must include a release pipeline row");
+    assert.match(releaseRow[0], /^- \[x\]/, "release pipeline checklist row must be checked when npm matches package.json");
+  });
+
   it("marks SECURITY.md present when the file exists", () => {
     const securityPath = join(repoRoot, "SECURITY.md");
     assert.ok(existsSync(securityPath), "SECURITY.md must exist for this assertion");
