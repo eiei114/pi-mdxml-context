@@ -291,9 +291,8 @@ describe("roadmap snapshot accuracy", () => {
     );
     assert.ok(releaseRow, "ROADMAP checklist must include a release pipeline row");
     assert.match(releaseRow[0], /^- \[x\]/, "release pipeline checklist row must be checked when npm matches package.json");
-    assert.match(
-      releaseRow[0],
-      new RegExp(pkg.version.replace(/\./g, "\\.")),
+    assert.ok(
+      releaseRow[0].includes(pkg.version),
       "release pipeline checklist row must document the resolved npm version",
     );
   });
