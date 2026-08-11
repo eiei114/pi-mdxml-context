@@ -284,9 +284,18 @@ describe("roadmap snapshot accuracy", () => {
       /npm publish-gap investigation is \*\*resolved\*\*/i,
       "seed 07 must document the resolved npm publish gap",
     );
-    const releaseRow = roadmap.match(/- \[[ x]\] Release pipeline publishes every validated version[^\n]*/);
+    const templateChecklist = roadmap.match(/(?:^|\n)## Template-compliance checklist[\s\S]*?(?=\n## |$)/)?.[0];
+    assert.ok(templateChecklist, "ROADMAP must include a Template-compliance checklist section");
+    const releaseRow = templateChecklist.match(
+      /- \[[ x]\] Release pipeline publishes every validated version[^\n]*/,
+    );
     assert.ok(releaseRow, "ROADMAP checklist must include a release pipeline row");
     assert.match(releaseRow[0], /^- \[x\]/, "release pipeline checklist row must be checked when npm matches package.json");
+    assert.match(
+      releaseRow[0],
+      new RegExp(pkg.version.replace(/\./g, "\\.")),
+      "release pipeline checklist row must document the resolved npm version",
+    );
   });
 
   it("marks SECURITY.md present when the file exists", () => {
