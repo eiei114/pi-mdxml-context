@@ -100,7 +100,7 @@ triaged, unknown-node behavior documented.
 - [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).
-- [ ] Release pipeline publishes every validated version (**seed `07`**).
+- [x] Release pipeline publishes every validated version (resolved at `0.1.13`; monitor via Phase 3).
 - [ ] Diff against `pi-extension-template` oss-rules recorded (**seed `07`**).
 
 ## Candidate maintenance seeds
@@ -287,7 +287,7 @@ docs, then make MAX_OUTPUT_CHARS and MAX_EXPANSION_RATIO configurable with the
 current values as defaults. Do not change default behavior without sign-off.
 ```
 
-### 07 — Template-compliance audit and npm publish-gap investigation (template compliance / release handoff)
+### 07 — Template-compliance audit (template compliance / release handoff)
 
 ```markdown
 ---
@@ -311,12 +311,12 @@ package_publish_expected: false
 work_owner: human
 ---
 HITL reason: needs the pi-extension-template reference (not available to the
-agent) and npm publish credentials/secrets, which are human-owned. Two parts:
-(1) diff this repo against pi-extension-template/Docs/pi-extension-oss-rules.md
-and file focused follow-ups for any gaps; (2) investigate why npm registry latest
-is 0.1.2 while package.json is 0.1.5 — confirm publish.yml ran for 0.1.3–0.1.5
-and either publish the gap or document the blockage. Acceptance: checklist
-updated, publish state explained.
+agent), which is human-owned. The npm publish-gap investigation is **resolved**
+— registry latest matches `package.json` (`0.1.3`–`0.1.13` on npm via Trusted
+Publishing; see Phase 3 closure note). Remaining work: diff this repo against
+pi-extension-template/Docs/pi-extension-oss-rules.md and file focused follow-ups
+for any gaps. Acceptance: template checklist updated, any remaining gaps
+triaged.
 ```
 
 ## Backlog integration
