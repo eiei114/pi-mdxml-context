@@ -41,7 +41,7 @@ broadening the feature surface.
 | Commands | `mdxml:on`, `mdxml:off`, `mdxml:status`, `mdxml:preview` |
 | CI | `ci.yml` (check/test/pack/`version:check`), `auto-release.yml`, `publish.yml` |
 | Expansion Guard | `MAX_OUTPUT_CHARS = 50_000`, `MAX_EXPANSION_RATIO = 2.0` (hardcoded) |
-| Tests | golden converter harness + expansion-guard observability + runtime-hook safety + preview/recent-store |
+| Tests | golden converter harness + expansion-guard observability + runtime-hook safety + preview/recent-store; CI uses `npm test`, local glob runs via `scripts/run-tests.mjs` |
 
 ## Phased goals
 
@@ -96,7 +96,7 @@ triaged, unknown-node behavior documented.
 
 - [x] `package.json` declares `pi.extensions`, `files`, keywords, repo/homepage.
 - [x] `README.md` documents features, commands, output shape, development.
-- [x] `CHANGELOG.md` follows Keep a Changelog and is updated with publishable changes.
+- [ ] `CHANGELOG.md` follows Keep a Changelog and is updated with publishable changes (**Unreleased still holds a stale `0.1.12` bump note while `package.json` is `0.1.13`; fold on next publishable docs PR**).
 - [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).

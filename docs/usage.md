@@ -72,3 +72,18 @@ npm install
 ```text
 /reload
 ```
+
+## Development commands
+
+From the repository root:
+
+```bash
+npm install
+npm run check   # TypeScript type check
+npm test        # CI-aligned test run (explicit file list in package.json)
+node scripts/run-tests.mjs              # Run every tests/*.test.ts via glob
+node scripts/run-tests.mjs --watch      # Watch mode (do not pass bare tests/)
+node tests/generate-golden.mjs          # Regenerate tests/fixtures/*.expected.xml
+```
+
+`node --experimental-strip-types --test tests/` treats `tests/` as a single file and fails. Use `npm test`, `node scripts/run-tests.mjs`, or `node --experimental-strip-types --test tests/*.test.ts` instead.
