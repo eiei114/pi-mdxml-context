@@ -318,6 +318,46 @@ describe("roadmap snapshot accuracy", () => {
   });
 });
 
+describe("developer tooling accuracy", () => {
+  const repoRoot = join(__dirname, "..");
+  const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as {
+    scripts?: { test?: string };
+  };
+  const usage = readFileSync(join(repoRoot, "docs", "usage.md"), "utf8");
+  const testScript = pkg.scripts?.test ?? "";
+  const testFiles = readdirSync(join(repoRoot, "tests"))
+    .filter((name) => name.endsWith(".test.ts"))
+    .sort();
+
+  it("documents working local test commands in docs/usage.md", () => {
+    assert.match(usage, /node scripts\/run-tests\.mjs/);
+    assert.match(usage, /tests\/\*\.test\.ts/);
+    assert.doesNotMatch(
+      usage,
+      /--test --watch tests\/[`'"]?\s*$/m,
+      "docs/usage.md must not recommend bare tests/ as a node --test target",
+    );
+  });
+
+  it("includes every tests/*.test.ts file in npm test", () => {
+    assert.ok(testFiles.length > 0, "expected at least one tests/*.test.ts file");
+    for (const file of testFiles) {
+      assert.ok(
+        testScript.includes(file),
+        `npm test must include ${file} (or use a tests/*.test.ts glob)`,
+      );
+    }
+  });
+
+  it("provides scripts/run-tests.mjs for glob-based local runs", () => {
+    const runner = join(repoRoot, "scripts", "run-tests.mjs");
+    assert.ok(existsSync(runner), "scripts/run-tests.mjs must exist for glob-based local test runs");
+    const content = readFileSync(runner, "utf8");
+    assert.match(content, /\.endsWith\("\.test\.ts"\)/);
+    assert.match(content, /--experimental-strip-types/);
+  });
+});
+
 describe("workflow action versions", () => {
   const workflowsDir = join(__dirname, "..", ".github", "workflows");
 
