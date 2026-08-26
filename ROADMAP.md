@@ -35,7 +35,7 @@ broadening the feature surface.
 | Area | State |
 | --- | --- |
 | Version (`package.json`) | `0.1.14` |
-| Latest published on npm | `0.1.14` (matches `package.json`; Trusted Publishing via `publish.yml`) |
+| Latest published on npm | `0.1.13` (`0.1.14` is staged; publishing remains human-owned via `publish.yml`) |
 | Public source surface | `index.ts` (single file); exports `convertMarkdown`, `normalizePreviewArg`, `MAX_COMPLETIONS`, `MAX_RECENT`, `MAX_TOOL_META`, and types `ConversionResult`, `GuardEvent`, `Provenance`, `SkipCategory` |
 | Runtime hooks | `session_start`, `before_agent_start`, `tool_result`, `context` |
 | Commands | `mdxml:on`, `mdxml:off`, `mdxml:status`, `mdxml:preview` |
@@ -79,7 +79,7 @@ unchanged settings, configurability behind default-preserving options.
 
 Close remaining edge-case and template-compliance loops.
 
-- ~~Resolve the npm publish gap (0.1.3–0.1.5)~~ **Done** — 0.1.3–0.1.14 are on npm; keep monitoring the release pipeline publishes what CI validates.
+- ~~Resolve the npm publish gap (0.1.3–0.1.5)~~ **Done** — 0.1.3–0.1.13 are on npm; 0.1.14 remains staged pending the human-owned publish step.
 - Run a template-compliance audit against `pi-extension-template` and file
   focused follow-ups for any remaining gaps.
 - Decide handling for nodes the converter currently passes through as generic
@@ -100,7 +100,7 @@ triaged, unknown-node behavior documented.
 - [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).
-- [x] Release pipeline publishes every validated version (resolved at `0.1.14`; monitor via Phase 3).
+- [ ] Release pipeline publishes every validated version (latest published `0.1.13`; `0.1.14` pending human-owned publish).
 - [ ] Diff against `pi-extension-template` oss-rules recorded (**seed `07`**).
 
 ## Candidate maintenance seeds
@@ -312,7 +312,7 @@ work_owner: human
 ---
 HITL reason: needs the pi-extension-template reference (not available to the
 agent), which is human-owned. The npm publish-gap investigation is **resolved**
-— registry latest matches `package.json` (`0.1.3`–`0.1.14` on npm via Trusted
+— registry latest matches the published package (`0.1.3`–`0.1.13` on npm via Trusted
 Publishing; see Phase 3 closure note). Remaining work: diff this repo against
 pi-extension-template/Docs/pi-extension-oss-rules.md and file focused follow-ups
 for any gaps. Acceptance: template checklist updated, any remaining gaps

@@ -39,7 +39,7 @@ pi install npm:pi-mdxml-context
 Pin a specific version when you want reproducible installs:
 
 ```bash
-pi install npm:pi-mdxml-context@0.1.14
+pi install npm:pi-mdxml-context@0.1.13
 ```
 
 Install into the current project instead of your user Pi settings:

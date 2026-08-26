@@ -251,6 +251,14 @@ describe("roadmap snapshot accuracy", () => {
   };
   const roadmap = readFileSync(join(repoRoot, "ROADMAP.md"), "utf8");
   const readme = readFileSync(join(repoRoot, "README.md"), "utf8");
+  const compareVersions = (left: string, right: string) => {
+    const a = left.split(".").map(Number);
+    const b = right.split(".").map(Number);
+    for (let index = 0; index < 3; index += 1) {
+      if (a[index] !== b[index]) return a[index] - b[index];
+    }
+    return 0;
+  };
 
   it("matches package.json version in the current state snapshot table", () => {
     const match = roadmap.match(/\|\s*Version \(`package\.json`\)\s*\|\s*`([^`]+)`\s*\|/);
@@ -258,18 +266,23 @@ describe("roadmap snapshot accuracy", () => {
     assert.equal(match[1], pkg.version);
   });
 
-  it("documents npm latest matching package.json in the snapshot table", () => {
+  it("documents npm latest at or below the staged package version", () => {
     const match = roadmap.match(/\|\s*Latest published on npm\s*\|\s*`([^`]+)`/);
     assert.ok(match, "ROADMAP snapshot must include a latest npm version row");
-    assert.equal(match[1], pkg.version);
+    assert.ok(
+      compareVersions(match[1], pkg.version) <= 0,
+      "Latest published npm version must not be ahead of package.json",
+    );
   });
 
-  it("documents npm publish gap closure through package.json version in Phase 3", () => {
+  it("documents npm publish gap closure through the latest published version in Phase 3", () => {
     const phase3 = roadmap.match(/(?:^|\n)### Phase 3[\s\S]*?(?=\n### |$)/)?.[0];
     assert.ok(phase3, "ROADMAP must include Phase 3");
     const match = phase3.match(/0\.1\.3–(0\.1\.\d+) are on npm/);
     assert.ok(match, "ROADMAP Phase 3 must document the resolved npm publish gap range");
-    assert.equal(match[1], pkg.version, "Phase 3 npm range must end at the current package.json version");
+    const latest = roadmap.match(/\|\s*Latest published on npm\s*\|\s*`([^`]+)`/);
+    assert.ok(latest, "ROADMAP snapshot must include a latest npm version row");
+    assert.equal(match[1], latest[1], "Phase 3 npm range must end at the latest published version");
   });
 
   it("does not keep stale npm publish-gap investigation text in seed 07", () => {
@@ -291,10 +304,17 @@ describe("roadmap snapshot accuracy", () => {
       /- \[[ x]\] Release pipeline publishes every validated version[^\n]*/,
     );
     assert.ok(releaseRow, "ROADMAP checklist must include a release pipeline row");
-    assert.match(releaseRow[0], /^- \[x\]/, "release pipeline checklist row must be checked when npm matches package.json");
+    const latest = roadmap.match(/\|\s*Latest published on npm\s*\|\s*`([^`]+)`/)?.[1];
+    assert.ok(latest, "ROADMAP snapshot must include a latest npm version row");
+    if (latest === pkg.version) {
+      assert.match(releaseRow[0], /^- \[x\]/, "release pipeline checklist row must be checked when npm matches package.json");
+    } else {
+      assert.match(releaseRow[0], /^- \[ \]/, "release pipeline checklist row must remain open before publication");
+      assert.match(releaseRow[0], /pending|human-owned/i, "release pipeline row must explain the unpublished staged version");
+    }
     assert.ok(
-      releaseRow[0].includes(pkg.version),
-      "release pipeline checklist row must document the resolved npm version",
+      releaseRow[0].includes(latest),
+      "release pipeline checklist row must document the latest published version",
     );
   });
 
@@ -345,15 +365,22 @@ describe("developer tooling accuracy", () => {
     assert.match(contributing, /node scripts\/run-tests\.mjs --watch/);
     assert.doesNotMatch(
       contributing,
+      /Use\s+node\s+(?:--experimental-strip-types\s+)?--test(?:\s+--watch)?\s+tests\//,
+      "CONTRIBUTING.md must not recommend tests/ as a node --test target",
+    );
+    assert.doesNotMatch(
+      contributing,
       /--test --watch tests\/[`'"]?\s*$/m,
       "CONTRIBUTING.md must not recommend bare tests/ as a node --test target",
     );
   });
 
   it("runs every tests/*.test.ts via scripts/run-tests.mjs", () => {
+    if (process.env.PI_MDXML_RUNNER_CHILD === "1") return;
     execFileSync(process.execPath, ["scripts/run-tests.mjs"], {
       cwd: repoRoot,
       stdio: "pipe",
+      env: { ...process.env, PI_MDXML_RUNNER_CHILD: "1" },
     });
   });
 

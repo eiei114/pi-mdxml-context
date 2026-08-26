@@ -2,17 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+- Fix CONTRIBUTING.md watch-mode test command to use `node scripts/run-tests.mjs --watch` instead of the broken `node --experimental-strip-types --test tests/` target.
+- Add developer-tooling regression checks for CONTRIBUTING.md and `scripts/run-tests.mjs` coverage.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.1.14] - 2026-08-26
-
-### Changed
-
-- Fix CONTRIBUTING.md watch-mode test command to use `node scripts/run-tests.mjs --watch` instead of the broken `node --test tests/` target.
-- Add developer-tooling regression checks for CONTRIBUTING.md and `scripts/run-tests.mjs` coverage.
 
 ## [0.1.13] - 2026-08-04
 
@@ -105,4 +103,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [prior releases]
 
 See git history and GitHub releases for earlier changes.
-
