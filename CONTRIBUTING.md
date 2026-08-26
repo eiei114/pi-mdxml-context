@@ -63,7 +63,7 @@ npm test        # Run all tests
 
 - Write tests for new functionality or bug fixes.
 - Golden test fixtures go in `tests/fixtures/` as matched `.md` / `.expected.xml` pairs.
-- Run tests with `npm test`. Use `node --experimental-strip-types --test --watch tests/` during development.
+- Run tests with `npm test`. Use `node scripts/run-tests.mjs --watch` during development (`node --test tests/` treats `tests/` as a file and fails; see `docs/usage.md`).
 - Ensure existing golden tests produce byte-identical output after your changes.
 
 ## Release workflow

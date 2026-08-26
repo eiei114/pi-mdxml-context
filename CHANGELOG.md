@@ -4,9 +4,8 @@
 
 ### Changed
 
-- Bump package version to `0.1.12` for the next patch release.
-
-- Add Buy Me a Coffee sponsor button to README and native GitHub funding link via `.github/FUNDING.yml`.
+- Fix CONTRIBUTING.md watch-mode test command to use `node scripts/run-tests.mjs --watch` instead of the broken `node --experimental-strip-types --test tests/` target.
+- Add developer-tooling regression checks for CONTRIBUTING.md and `scripts/run-tests.mjs` coverage.
 
 All notable changes to this project will be documented in this file.
 
@@ -104,4 +103,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [prior releases]
 
 See git history and GitHub releases for earlier changes.
-
