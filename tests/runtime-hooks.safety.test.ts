@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -324,6 +325,7 @@ describe("developer tooling accuracy", () => {
     scripts?: { test?: string };
   };
   const usage = readFileSync(join(repoRoot, "docs", "usage.md"), "utf8");
+  const contributing = readFileSync(join(repoRoot, "CONTRIBUTING.md"), "utf8");
   const testScript = pkg.scripts?.test ?? "";
   const testFiles = readdirSync(join(repoRoot, "tests"))
     .filter((name) => name.endsWith(".test.ts"))
@@ -337,6 +339,22 @@ describe("developer tooling accuracy", () => {
       /--test --watch tests\/[`'"]?\s*$/m,
       "docs/usage.md must not recommend bare tests/ as a node --test target",
     );
+  });
+
+  it("documents working watch-mode commands in CONTRIBUTING.md", () => {
+    assert.match(contributing, /node scripts\/run-tests\.mjs --watch/);
+    assert.doesNotMatch(
+      contributing,
+      /--test --watch tests\/[`'"]?\s*$/m,
+      "CONTRIBUTING.md must not recommend bare tests/ as a node --test target",
+    );
+  });
+
+  it("runs every tests/*.test.ts via scripts/run-tests.mjs", () => {
+    execFileSync(process.execPath, ["scripts/run-tests.mjs"], {
+      cwd: repoRoot,
+      stdio: "pipe",
+    });
   });
 
   it("includes every tests/*.test.ts file in npm test", () => {
