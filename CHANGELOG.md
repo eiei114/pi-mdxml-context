@@ -4,6 +4,13 @@
 
 ### Changed
 
+- Delegate `npm test` to `scripts/run-tests.mjs` so CI and local runs stay aligned without maintaining a duplicate explicit test file list in `package.json`.
+- Add developer-tooling regression check that `npm test` delegates to the glob-based runner.
+
+## [0.1.14] - 2026-08-26
+
+### Changed
+
 - Fix CONTRIBUTING.md watch-mode test command to use `node scripts/run-tests.mjs --watch` instead of the broken `node --experimental-strip-types --test tests/` target.
 - Add developer-tooling regression checks for CONTRIBUTING.md and `scripts/run-tests.mjs` coverage.
 

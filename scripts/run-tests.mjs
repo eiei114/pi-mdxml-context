@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Run all tests/*.test.ts with Node's built-in test runner.
- * Use this for local development; CI runs `npm test`.
+ * Used by `npm test` (CI and local) so every tests/*.test.ts file stays covered.
  */
 import { execFileSync } from "node:child_process";
 import { readdirSync } from "node:fs";

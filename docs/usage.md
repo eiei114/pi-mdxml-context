@@ -80,7 +80,7 @@ From the repository root:
 ```bash
 npm install
 npm run check   # TypeScript type check
-npm test        # CI-aligned test run (explicit file list in package.json)
+npm test        # CI-aligned test run (delegates to scripts/run-tests.mjs)
 node scripts/run-tests.mjs              # Run every tests/*.test.ts via glob
 node scripts/run-tests.mjs --watch      # Watch mode (do not pass bare tests/)
 node tests/generate-golden.mjs          # Regenerate tests/fixtures/*.expected.xml
