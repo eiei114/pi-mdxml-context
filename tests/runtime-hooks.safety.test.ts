@@ -384,14 +384,8 @@ describe("developer tooling accuracy", () => {
     });
   });
 
-  it("includes every tests/*.test.ts file in npm test", () => {
-    assert.ok(testFiles.length > 0, "expected at least one tests/*.test.ts file");
-    for (const file of testFiles) {
-      assert.ok(
-        testScript.includes(file),
-        `npm test must include ${file} (or use a tests/*.test.ts glob)`,
-      );
-    }
+  it("delegates npm test to scripts/run-tests.mjs", () => {
+    assert.match(testScript, /scripts\/run-tests\.mjs/);
   });
 
   it("provides scripts/run-tests.mjs for glob-based local runs", () => {

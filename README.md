@@ -113,7 +113,8 @@ Conversion is enabled by default after the extension loads. Use `/mdxml:off` to 
 ```bash
 npm install
 npm run check
-npm test
+npm test        # runs every tests/*.test.ts via scripts/run-tests.mjs
+node scripts/run-tests.mjs --watch   # watch mode during development
 ```
 
 Before opening a PR with publishable changes, bump `package.json` and update `CHANGELOG.md` in the same PR. CI runs `npm run version:check` on pull requests.
