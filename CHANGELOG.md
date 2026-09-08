@@ -2,10 +2,13 @@
 
 ## Unreleased
 
+## [0.1.16] - 2026-09-09
+
 ### Changed
 
-- Delegate `npm test` to `scripts/run-tests.mjs` so CI and local runs stay aligned without maintaining a duplicate explicit test file list in `package.json`.
-- Add developer-tooling regression check that `npm test` delegates to the glob-based runner.
+- Refresh README pinned install example to `@0.1.15` so copy-paste installs match the latest npm release.
+- Update ROADMAP npm snapshot to reflect 0.1.15 on npm and 0.1.16 staged.
+- Add developer-tooling regression check that README pin example tracks the latest published npm version in ROADMAP.
 
 ## [0.1.14] - 2026-08-26
 
