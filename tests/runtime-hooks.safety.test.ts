@@ -342,14 +342,27 @@ describe("roadmap snapshot accuracy", () => {
 describe("developer tooling accuracy", () => {
   const repoRoot = join(__dirname, "..");
   const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as {
+    version: string;
     scripts?: { test?: string };
   };
+  const readme = readFileSync(join(repoRoot, "README.md"), "utf8");
+  const roadmap = readFileSync(join(repoRoot, "ROADMAP.md"), "utf8");
   const usage = readFileSync(join(repoRoot, "docs", "usage.md"), "utf8");
   const contributing = readFileSync(join(repoRoot, "CONTRIBUTING.md"), "utf8");
   const testScript = pkg.scripts?.test ?? "";
   const testFiles = readdirSync(join(repoRoot, "tests"))
     .filter((name) => name.endsWith(".test.ts"))
     .sort();
+
+  it("documents the latest published npm version in README pin example", () => {
+    const latest = roadmap.match(/\|\s*Latest published on npm\s*\|\s*`([^`]+)`/)?.[1];
+    assert.ok(latest, "ROADMAP snapshot must include a latest npm version row");
+    assert.match(
+      readme,
+      new RegExp(`pi install npm:pi-mdxml-context@${latest.replace(/\./g, "\\.")}\\b`),
+      "README pin example must match ROADMAP latest published npm version",
+    );
+  });
 
   it("documents working local test commands in docs/usage.md", () => {
     assert.match(usage, /node scripts\/run-tests\.mjs/);
