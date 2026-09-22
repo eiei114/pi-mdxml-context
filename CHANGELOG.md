@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.1.17] - 2026-09-22
+
+### Changed
+
+- Refresh README pinned install example to `@0.1.16` so copy-paste installs match the latest npm release.
+- Update ROADMAP npm snapshot to reflect 0.1.16 on npm and 0.1.17 staged.
+
 ## [0.1.16] - 2026-09-09
 
 ### Changed
