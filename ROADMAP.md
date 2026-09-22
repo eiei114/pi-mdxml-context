@@ -34,8 +34,8 @@ broadening the feature surface.
 
 | Area | State |
 | --- | --- |
-| Version (`package.json`) | `0.1.16` |
-| Latest published on npm | `0.1.16` (publishing remains human-owned via `publish.yml`) |
+| Version (`package.json`) | `0.1.17` |
+| Latest published on npm | `0.1.16` (`0.1.17` is staged; publishing remains human-owned via `publish.yml`) |
 | Public source surface | `index.ts` (single file); exports `convertMarkdown`, `normalizePreviewArg`, `MAX_COMPLETIONS`, `MAX_RECENT`, `MAX_TOOL_META`, and types `ConversionResult`, `GuardEvent`, `Provenance`, `SkipCategory` |
 | Runtime hooks | `session_start`, `before_agent_start`, `tool_result`, `context` |
 | Commands | `mdxml:on`, `mdxml:off`, `mdxml:status`, `mdxml:preview` |
@@ -100,7 +100,7 @@ triaged, unknown-node behavior documented.
 - [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).
-- [x] Release pipeline publishes every validated version (latest published `0.1.16`; publishing remains human-owned via `publish.yml`).
+- [ ] Release pipeline publishes every validated version (latest published `0.1.16`; `0.1.17` is staged pending the human-owned publish step).
 - [ ] Diff against `pi-extension-template` oss-rules recorded (**seed `07`**).
 
 ## Candidate maintenance seeds
