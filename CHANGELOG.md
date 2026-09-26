@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.1.18] - 2026-09-27
+
+### Changed
+
+- Refresh the README pinned install example and roadmap snapshot to the latest published npm version, `0.1.17`.
+
 ## [0.1.17] - 2026-09-22
 
 ### Changed
