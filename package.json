@@ -1,6 +1,6 @@
 {
   "name": "pi-mdxml-context",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"
@@ -22,9 +22,12 @@
     "unified": "^11.0.5"
   },
   "devDependencies": {
-    "@mariozechner/pi-coding-agent": "^0.73.1",
+    "@earendil-works/pi-coding-agent": "^0.99.1",
     "@types/node": "^24.0.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@earendil-works/pi-agent-core": "^0.99.1",
+    "@earendil-works/pi-ai": "^0.99.1",
+    "@earendil-works/pi-tui": "^0.99.1"
   },
   "license": "MIT",
   "description": "Pi extension that converts Markdown context to XML-like structure at model send time",
@@ -55,5 +58,11 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
   }
 }

@@ -9,7 +9,7 @@ import type {
   ExtensionCommandContext,
   RegisteredCommand,
   ToolResultEvent,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import piMdxmlContext, { MAX_COMPLETIONS, MAX_RECENT, normalizePreviewArg } from "../index.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
