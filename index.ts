@@ -1,8 +1,8 @@
 import { existsSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, relative, resolve, sep } from "node:path";
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { ImageContent, TextContent, ToolResultMessage } from "@mariozechner/pi-ai";
+import type { AgentMessage } from "@earendil-works/pi-agent-core";
+import type { ImageContent, TextContent, ToolResultMessage } from "@earendil-works/pi-ai";
 import type {
   BeforeAgentStartEvent,
   BeforeAgentStartEventResult,
@@ -12,8 +12,8 @@ import type {
   ExtensionContext,
   SessionStartEvent,
   ToolResultEvent,
-} from "@mariozechner/pi-coding-agent";
-import type { AutocompleteItem } from "@mariozechner/pi-tui";
+} from "@earendil-works/pi-coding-agent";
+import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";

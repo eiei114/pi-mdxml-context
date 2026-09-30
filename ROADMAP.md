@@ -34,7 +34,7 @@ broadening the feature surface.
 
 | Area | State |
 | --- | --- |
-| Version (`package.json`) | `0.1.18` |
+| Version (`package.json`) | `0.1.19` |
 | Latest published on npm | `0.1.17` (`0.1.18` is staged; publishing remains human-owned via `publish.yml`) |
 | Public source surface | `index.ts` (single file); exports `convertMarkdown`, `normalizePreviewArg`, `MAX_COMPLETIONS`, `MAX_RECENT`, `MAX_TOOL_META`, and types `ConversionResult`, `GuardEvent`, `Provenance`, `SkipCategory` |
 | Runtime hooks | `session_start`, `before_agent_start`, `tool_result`, `context` |

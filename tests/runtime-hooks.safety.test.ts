@@ -5,8 +5,8 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { ToolResultMessage } from "@mariozechner/pi-ai";
+import type { AgentMessage } from "@earendil-works/pi-agent-core";
+import type { ToolResultMessage } from "@earendil-works/pi-ai";
 import type {
   BeforeAgentStartEvent,
   BeforeAgentStartEventResult,
@@ -16,7 +16,7 @@ import type {
   ExtensionContext,
   RegisteredCommand,
   ToolResultEvent,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import piMdxmlContext from "../index.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -114,7 +114,7 @@ describe("runtime hook safety", () => {
 
   it("before_agent_start converts markdown context files when present", async () => {
     const { handlers } = loadExtensionHarness();
-    const event: BeforeAgentStartEvent = {
+    const event = {
       type: "before_agent_start",
       prompt: "hi",
       systemPrompt: markdownFixture,
@@ -122,7 +122,7 @@ describe("runtime hook safety", () => {
         cwd: process.cwd(),
         contextFiles: [{ path: "docs/example.md", content: markdownFixture }],
       },
-    };
+    } as unknown as BeforeAgentStartEvent;
 
     const result = await handlers.before_agent_start?.(event, createMockContext());
     assert.ok(result?.systemPrompt);
