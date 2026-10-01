@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.1.20] - 2026-10-01
+
+### Changed
+
+- Replace repeated context-file scanning with a single-pass `replaceAll` operation.
+
 ## [0.1.19] - 2026-09-30
 
 ### Changed
