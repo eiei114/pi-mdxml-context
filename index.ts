@@ -609,7 +609,7 @@ export default function piMdxmlContext(pi: ExtensionAPI): void {
           activeStats.skipped += 1;
           continue;
         }
-        systemPrompt = systemPrompt.split(contextFile.content).join(result.xml);
+        systemPrompt = systemPrompt.replaceAll(contextFile.content, result.xml);
         activeStats.converted += 1;
         recordGuardEvent(result, { source: "context_file", path: contextFile.path }, contextFile.path);
       }

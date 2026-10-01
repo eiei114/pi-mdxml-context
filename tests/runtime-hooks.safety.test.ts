@@ -130,6 +130,23 @@ describe("runtime hook safety", () => {
     assert.match(result?.systemPrompt ?? "", /<markdown_context/);
   });
 
+  it("before_agent_start replaces every repeated context file occurrence", async () => {
+    const { handlers } = loadExtensionHarness();
+    const event = {
+      type: "before_agent_start",
+      prompt: "hi",
+      systemPrompt: `${markdownFixture}\n${markdownFixture}`,
+      systemPromptOptions: {
+        cwd: process.cwd(),
+        contextFiles: [{ path: "docs/example.md", content: markdownFixture }],
+      },
+    } as unknown as BeforeAgentStartEvent;
+
+    const result = await handlers.before_agent_start?.(event, createMockContext());
+    const convertedCount = (result?.systemPrompt?.match(/<markdown_context/g) ?? []).length;
+    assert.equal(convertedCount, 2);
+  });
+
   it("tool_result ignores image-only content without throwing", async () => {
     const { handlers } = loadExtensionHarness();
     const event = {
