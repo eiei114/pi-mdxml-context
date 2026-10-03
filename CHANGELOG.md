@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.1.21] - 2026-10-03
+
+### Fixed
+
+- Preserve replacement tokens when converting context files.
+
 ## [0.1.20] - 2026-10-01
 
 ### Changed
