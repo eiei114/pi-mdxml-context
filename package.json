@@ -22,12 +22,12 @@
     "unified": "^11.0.5"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.99.1",
-    "@types/node": "^24.0.0",
+    "@earendil-works/pi-coding-agent": "^0.99.2",
+    "@types/node": "^24.19.1",
     "typescript": "^5.9.0",
-    "@earendil-works/pi-agent-core": "^0.99.1",
-    "@earendil-works/pi-ai": "^0.99.1",
-    "@earendil-works/pi-tui": "^0.99.1"
+    "@earendil-works/pi-agent-core": "^0.99.2",
+    "@earendil-works/pi-ai": "^0.99.2",
+    "@earendil-works/pi-tui": "^0.99.2"
   },
   "license": "MIT",
   "description": "Pi extension that converts Markdown context to XML-like structure at model send time",
