@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.1.22] - 2026-10-09
+
+### Changed
+
+- Update Pi SDK development dependencies to 0.99.2 and refresh Node.js type definitions to 24.19.1.
+
 ## [0.1.21] - 2026-10-03
 
 ### Fixed
