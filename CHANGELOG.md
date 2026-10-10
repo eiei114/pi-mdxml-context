@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.1.23] - 2026-10-09
+
+### Changed
+
+- Bump the staged package version after the 0.1.22 dependency update.
+
 ## [0.1.22] - 2026-10-09
 
 ### Changed
