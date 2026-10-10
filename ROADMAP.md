@@ -100,7 +100,7 @@ triaged, unknown-node behavior documented.
 - [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).
-- [ ] Release pipeline publishes every validated version (latest published `0.1.17`; `0.1.18` is staged pending the human-owned publish step).
+- [ ] Release pipeline publishes every validated version (latest published `0.1.17`; `0.1.23` is staged pending the human-owned publish step).
 - [ ] Diff against `pi-extension-template` oss-rules recorded (**seed `07`**).
 
 ## Candidate maintenance seeds
