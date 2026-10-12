@@ -80,7 +80,8 @@ From the repository root:
 ```bash
 npm install
 npm run check   # TypeScript type check
-npm test        # CI-aligned test run (delegates to scripts/run-tests.mjs)
+npm test        # focused tests plus smoke-contract regression tests
+npm run smoke:pi # actual installed Pi host/load, preview, error, reload, and native-shell smoke
 node scripts/run-tests.mjs              # Run every tests/*.test.ts via glob
 node scripts/run-tests.mjs --watch      # Watch mode (do not pass bare tests/)
 node tests/generate-golden.mjs          # Regenerate tests/fixtures/*.expected.xml

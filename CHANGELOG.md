@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.1.24] - 2026-10-12
+
+### Changed
+
+- Pin Pi SDK development dependencies to 1.1.0 and verify compatibility against the actual Pi host.
+- Keep release automation manual so merging this version bump cannot trigger a release or publish.
+
 ## [0.1.23] - 2026-10-09
 
 ### Changed
