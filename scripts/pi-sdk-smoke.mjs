@@ -80,7 +80,24 @@ function runRpcCase(name, promptMessage) {
       child.kill("SIGKILL");
     }, TIMEOUT_MS);
 
-    const send = (request) => child.stdin.write(`${JSON.stringify(request)}\n`);
+    // The Pi host can exit between the writable check and the write, which emits
+    // EPIPE on child.stdin. Without a listener that becomes an unhandled error and
+    // the case never settles, so surface it through the same failure path.
+    const stdinErrors = [];
+    child.stdin.on("error", (error) => {
+      stdinErrors.push(error?.message ?? String(error));
+      child.kill("SIGKILL");
+    });
+    const send = (request) => {
+      if (child.stdin.destroyed || child.stdin.writableEnded) return;
+      try {
+        child.stdin.write(`${JSON.stringify(request)}
+`);
+      } catch (error) {
+        stdinErrors.push(error?.message ?? String(error));
+        child.kill("SIGKILL");
+      }
+    };
     const endInput = () => {
       if (!child.stdin.destroyed && !child.stdin.writableEnded) child.stdin.end();
     };
@@ -138,8 +155,9 @@ function runRpcCase(name, promptMessage) {
         name,
         command,
         exit_code,
-        passed: !timedOut && !spawnError && !signal && exit_code === 0
+        passed: !timedOut && !spawnError && !signal && exit_code === 0 && stdinErrors.length === 0
           && !hasUnhandledError && !hasLoadError && assertions.every((item) => item.passed),
+        stdin_error: stdinErrors[0] ?? null,
         evidence: capturedRpcEvidence(records) || (spawnError ? String(spawnError.message) : "No relevant RPC output captured"),
         assertions,
         hasUnhandledError,

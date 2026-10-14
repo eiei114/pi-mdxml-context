@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { behaviorAssertions } from "./pi-sdk-smoke-contract.mjs";
@@ -55,4 +56,12 @@ describe("Pi SDK smoke behavior contract", () => {
     assert.equal(behaviorAssertions("host_shell", { exit_code: 0, fullOutput: "1.1.0\n", expectedVersion: "1.1.0" })[0].passed, true);
     assert.equal(behaviorAssertions("host_shell", { exit_code: 0, fullOutput: "0.99.2\n", expectedVersion: "1.1.0" })[0].passed, false);
   });
+});
+
+
+it("host stdin errors are surfaced instead of hanging the case", () => {
+  const source = readFileSync(new URL("./pi-sdk-smoke.mjs", import.meta.url), "utf8");
+  assert.match(source, /child\.stdin\.on\("error"/, "must listen for stdin errors");
+  assert.match(source, /stdinErrors\.push/, "must record the error");
+  assert.match(source, /stdinErrors\.length === 0/, "must fail the case when stdin errored");
 });
