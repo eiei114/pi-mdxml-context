@@ -34,8 +34,8 @@ broadening the feature surface.
 
 | Area | State |
 | --- | --- |
-| Version (`package.json`) | `0.1.24` |
-| Latest published on npm | `0.1.17` (`0.1.24` is staged; publishing remains human-owned via `publish.yml`) |
+| Version (`package.json`) | `0.1.25` |
+| Latest published on npm | `0.1.23` (`0.1.25` is staged; publishing remains human-owned via `publish.yml`) |
 | Public source surface | `index.ts` (single file); exports `convertMarkdown`, `normalizePreviewArg`, `MAX_COMPLETIONS`, `MAX_RECENT`, `MAX_TOOL_META`, and types `ConversionResult`, `GuardEvent`, `Provenance`, `SkipCategory` |
 | Runtime hooks | `session_start`, `before_agent_start`, `tool_result`, `context` |
 | Commands | `mdxml:on`, `mdxml:off`, `mdxml:status`, `mdxml:preview` |
@@ -79,7 +79,7 @@ unchanged settings, configurability behind default-preserving options.
 
 Close remaining edge-case and template-compliance loops.
 
-- ~~Resolve the npm publish gap (0.1.3–0.1.5)~~ **Done** — 0.1.3–0.1.17 are on npm; publishing remains human-owned via `publish.yml`.
+- ~~Resolve the npm publish gap (0.1.3–0.1.5)~~ **Done** — 0.1.3–0.1.23 are on npm; publishing remains human-owned via `publish.yml`.
 - Run a template-compliance audit against `pi-extension-template` and file
   focused follow-ups for any remaining gaps.
 - Decide handling for nodes the converter currently passes through as generic
@@ -100,7 +100,7 @@ triaged, unknown-node behavior documented.
 - [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).
-- [ ] Release pipeline publishes every validated version (latest published `0.1.17`; `0.1.24` is staged pending the human-owned publish step).
+- [ ] Release pipeline publishes every validated version (latest published `0.1.23`; `0.1.25` is staged pending the human-owned publish step).
 - [ ] Diff against `pi-extension-template` oss-rules recorded (**seed `07`**).
 
 ## Candidate maintenance seeds
