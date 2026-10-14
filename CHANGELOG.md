@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-## [0.1.25] - 2026-10-15
-
 ### Changed
 
 - Refresh the README pinned install example to the latest published npm version, 0.1.23.
