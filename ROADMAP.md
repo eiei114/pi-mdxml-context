@@ -34,12 +34,12 @@ broadening the feature surface.
 
 | Area | State |
 | --- | --- |
-| Version (`package.json`) | `0.1.23` |
-| Latest published on npm | `0.1.17` (`0.1.23` is staged; publishing remains human-owned via `publish.yml`) |
+| Version (`package.json`) | `0.1.24` |
+| Latest published on npm | `0.1.17` (`0.1.24` is staged; publishing remains human-owned via `publish.yml`) |
 | Public source surface | `index.ts` (single file); exports `convertMarkdown`, `normalizePreviewArg`, `MAX_COMPLETIONS`, `MAX_RECENT`, `MAX_TOOL_META`, and types `ConversionResult`, `GuardEvent`, `Provenance`, `SkipCategory` |
 | Runtime hooks | `session_start`, `before_agent_start`, `tool_result`, `context` |
 | Commands | `mdxml:on`, `mdxml:off`, `mdxml:status`, `mdxml:preview` |
-| CI | `ci.yml` (check/test/pack/`version:check`), `auto-release.yml`, `publish.yml` |
+| CI | `ci.yml` (check/test/actual-Pi-smoke/pack/`version:check` on Linux and Windows), manually dispatched `auto-release.yml`, `publish.yml` |
 | Expansion Guard | `MAX_OUTPUT_CHARS = 50_000`, `MAX_EXPANSION_RATIO = 2.0` (hardcoded) |
 | Tests | golden converter harness + expansion-guard observability + runtime-hook safety + preview/recent-store; CI uses `npm test`, local glob runs via `scripts/run-tests.mjs` |
 
@@ -100,7 +100,7 @@ triaged, unknown-node behavior documented.
 - [x] `SECURITY.md` present (template default; shipped in `package.json` `files` and linked from README).
 - [ ] Public API / hook-contract boundary documented (**seed `02`**).
 - [ ] `npm pack` contents reviewed for completeness (**seed `03`**).
-- [ ] Release pipeline publishes every validated version (latest published `0.1.17`; `0.1.23` is staged pending the human-owned publish step).
+- [ ] Release pipeline publishes every validated version (latest published `0.1.17`; `0.1.24` is staged pending the human-owned publish step).
 - [ ] Diff against `pi-extension-template` oss-rules recorded (**seed `07`**).
 
 ## Candidate maintenance seeds

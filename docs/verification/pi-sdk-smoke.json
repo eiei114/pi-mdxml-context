@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "verification_contract": "pi-sdk-behavior-v2",
+  "sdk_versions": {
+    "@earendil-works/pi-agent-core": "1.1.0",
+    "@earendil-works/pi-ai": "1.1.0",
+    "@earendil-works/pi-coding-agent": "1.1.0",
+    "@earendil-works/pi-tui": "1.1.0"
+  },
+  "platform": "win32",
+  "model_inference": "none; actual Pi RPC process executes mdxml:preview against a repository Markdown fixture",
+  "unhandled_errors": 0,
+  "extension_load_errors": 0,
+  "cases": [
+    {
+      "name": "extension_load",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"type\":\"extension_ui_request\",\"method\":\"setStatus\",\"statusKey\":\"mdxml\",\"statusText\":\"mdxml:on 0c/0s\"}\n{\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"mdxml:on\",\"source\":\"extension\"},{\"name\":\"mdxml:off\",\"source\":\"extension\"},{\"name\":\"mdxml:status\",\"source\":\"extension\"},{\"name\":\"mdxml:preview\",\"source\":\"extension\"}]}}",
+      "assertions": [
+        {
+          "id": "extension_registered",
+          "expected": "The actual Pi RPC command inventory contains this extension's mdxml:preview command",
+          "observed": "{\"name\":\"mdxml:preview\",\"source\":\"extension\"}",
+          "passed": true
+        }
+      ],
+      "process_exit_observed": true
+    },
+    {
+      "name": "happy_path",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"type\":\"extension_ui_request\",\"method\":\"setStatus\",\"statusKey\":\"mdxml\",\"statusText\":\"mdxml:on 0c/0s\"}\n{\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"mdxml:on\",\"source\":\"extension\"},{\"name\":\"mdxml:off\",\"source\":\"extension\"},{\"name\":\"mdxml:status\",\"source\":\"extension\"},{\"name\":\"mdxml:preview\",\"source\":\"extension\"}]}}\n{\"type\":\"extension_ui_request\",\"method\":\"editor\",\"title\":\"mdxml preview\",\"prefill\":\"<markdown_context source=\\\"preview\\\" path=\\\"wikilink.md\\\" original_format=\\\"markdown\\\" converted_by=\\\"pi-mdxml-context\\\">\\n<section depth=\\\"2\\\" title=\\\"Golden harness context\\\"><paragraph>Supporting prose increases the source character count so the expansion guard allows snapshot generation. The section below exercises the converter feature under test for this fixture.</paragraph><paragraph>See <wikilink target=\\\"Target Note\\\" /> and <wikilink target=\\\"Other\\\" alias=\\\"display label\\\" />.</paragraph></section>\\n<section depth=\\\"2\\\" title=\\\"Golden harness footer\\\"><paragraph>Trailing context provides stable surrounding markdown for golden snapshot tests.</paragraph><paragraph>Additional padding line one for expansion ratio compliance.</paragraph><paragraph>Additional padding line two for expansion ratio compliance.</paragraph><paragraph>Additional padding line three for expansion ratio compliance.</paragraph></section>\\n</markdown_context>\"}\n{\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}",
+      "assertions": [
+        {
+          "id": "feature_response",
+          "expected": "The actual Pi host handles /mdxml:preview and its editor response contains converted markdown XML, isolated-workspace provenance, and both wikilinks",
+          "observed": "{\"prompt\":{\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"editor\":{\"method\":\"editor\",\"title\":\"mdxml preview\",\"prefill\":\"<markdown_context source=\\\"preview\\\" path=\\\"wikilink.md\\\" original_format=\\\"markdown\\\" converted_by=\\\"pi-mdxml-context\\\">\\n<section depth=\\\"2\\\" title=\\\"Golden harness context\\\"><paragraph>Supporting prose increases the source character count so the expansion guard allows snapshot generation. The section below exercises the converter feature under test for this fixture.</paragraph><paragraph>See <wikilink target=\\\"Target Note\\\" /> and <wikilink target=\\\"Other\\\" alias=\\\"display label\\\" />.</paragraph></section>\\n<section depth=\\\"2\\\" title=\\\"Golden harness footer\\\"><paragraph>Trailing context provides stable surrounding markdown for golden snapshot tests.</paragraph><paragraph>Additional padding line one for expansion ratio compliance.</paragraph><paragraph>Additional padding line two for expansion ratio compliance.</paragraph><paragraph>Additional padding line three for expansion ratio compliance.</paragraph></section>\\n</markdown_context>\"}}",
+          "passed": true
+        }
+      ],
+      "process_exit_observed": true
+    },
+    {
+      "name": "error_path",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"type\":\"extension_ui_request\",\"method\":\"setStatus\",\"statusKey\":\"mdxml\",\"statusText\":\"mdxml:on 0c/0s\"}\n{\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"mdxml:on\",\"source\":\"extension\"},{\"name\":\"mdxml:off\",\"source\":\"extension\"},{\"name\":\"mdxml:status\",\"source\":\"extension\"},{\"name\":\"mdxml:preview\",\"source\":\"extension\"}]}}\n{\"type\":\"extension_ui_request\",\"method\":\"notify\",\"notifyType\":\"error\",\"message\":\"Failed to read __pi-mdxml-smoke-missing__.md: ENOENT: no such file or directory, open '<isolated-agent-dir>\\\\__pi-mdxml-smoke-missing__.md'\"}\n{\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}",
+      "assertions": [
+        {
+          "id": "handled_error",
+          "expected": "A missing Markdown file produces the extension's handled read-error notification and the Pi command response is handled",
+          "observed": "{\"prompt\":{\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"notification\":{\"method\":\"notify\",\"notifyType\":\"error\",\"message\":\"Failed to read __pi-mdxml-smoke-missing__.md: ENOENT: no such file or directory, open '<isolated-path>\\\\__pi-mdxml-smoke-missing__.md'\"}}",
+          "passed": true
+        }
+      ],
+      "process_exit_observed": true
+    },
+    {
+      "name": "reload_cleanup",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"type\":\"extension_ui_request\",\"method\":\"setStatus\",\"statusKey\":\"mdxml\",\"statusText\":\"mdxml:on 0c/0s\"}\n{\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"mdxml:on\",\"source\":\"extension\"},{\"name\":\"mdxml:off\",\"source\":\"extension\"},{\"name\":\"mdxml:status\",\"source\":\"extension\"},{\"name\":\"mdxml:preview\",\"source\":\"extension\"}]}}\n{\"type\":\"extension_ui_request\",\"method\":\"editor\",\"title\":\"mdxml preview\",\"prefill\":\"<markdown_context source=\\\"preview\\\" path=\\\"wikilink.md\\\" original_format=\\\"markdown\\\" converted_by=\\\"pi-mdxml-context\\\">\\n<section depth=\\\"2\\\" title=\\\"Golden harness context\\\"><paragraph>Supporting prose increases the source character count so the expansion guard allows snapshot generation. The section below exercises the converter feature under test for this fixture.</paragraph><paragraph>See <wikilink target=\\\"Target Note\\\" /> and <wikilink target=\\\"Other\\\" alias=\\\"display label\\\" />.</paragraph></section>\\n<section depth=\\\"2\\\" title=\\\"Golden harness footer\\\"><paragraph>Trailing context provides stable surrounding markdown for golden snapshot tests.</paragraph><paragraph>Additional padding line one for expansion ratio compliance.</paragraph><paragraph>Additional padding line two for expansion ratio compliance.</paragraph><paragraph>Additional padding line three for expansion ratio compliance.</paragraph></section>\\n</markdown_context>\"}\n{\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}",
+      "assertions": [
+        {
+          "id": "reloaded_extension_registered",
+          "expected": "A fresh second Pi process registers mdxml:preview",
+          "observed": "{\"name\":\"mdxml:preview\",\"source\":\"extension\"}",
+          "passed": true
+        },
+        {
+          "id": "reloaded_feature_response",
+          "expected": "The actual Pi host handles /mdxml:preview and its editor response contains converted markdown XML, isolated-workspace provenance, and both wikilinks",
+          "observed": "{\"prompt\":{\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"editor\":{\"method\":\"editor\",\"title\":\"mdxml preview\",\"prefill\":\"<markdown_context source=\\\"preview\\\" path=\\\"wikilink.md\\\" original_format=\\\"markdown\\\" converted_by=\\\"pi-mdxml-context\\\">\\n<section depth=\\\"2\\\" title=\\\"Golden harness context\\\"><paragraph>Supporting prose increases the source character count so the expansion guard allows snapshot generation. The section below exercises the converter feature under test for this fixture.</paragraph><paragraph>See <wikilink target=\\\"Target Note\\\" /> and <wikilink target=\\\"Other\\\" alias=\\\"display label\\\" />.</paragraph></section>\\n<section depth=\\\"2\\\" title=\\\"Golden harness footer\\\"><paragraph>Trailing context provides stable surrounding markdown for golden snapshot tests.</paragraph><paragraph>Additional padding line one for expansion ratio compliance.</paragraph><paragraph>Additional padding line two for expansion ratio compliance.</paragraph><paragraph>Additional padding line three for expansion ratio compliance.</paragraph></section>\\n</markdown_context>\"}}",
+          "passed": true
+        },
+        {
+          "id": "clean_shutdown",
+          "expected": "The second actual Pi host exits zero without unhandled exceptions or shutdown errors",
+          "observed": "{\"exit_code\":0,\"process_exit_observed\":true,\"errors\":false}",
+          "passed": true
+        }
+      ],
+      "process_exit_observed": true
+    },
+    {
+      "name": "host_shell",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "1.1.0\n",
+      "assertions": [
+        {
+          "id": "native_shell_boundary",
+          "expected": "The native host shell launches the locally installed Pi CLI and returns its exact SDK version",
+          "observed": "{\"exit_code\":0,\"output\":\"1.1.0\",\"expectedVersion\":\"1.1.0\"}",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

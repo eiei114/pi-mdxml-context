@@ -1,8 +1,7 @@
 name: Auto Release
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   actions: write
@@ -10,6 +9,9 @@ permissions:
 
 jobs:
   release:
+    # A manual dispatch can select any ref; keep the privileged release on main so
+    # an unmerged branch commit can never be tagged and published.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     name: Create release for new version
     runs-on: ubuntu-latest
     steps:
