@@ -2,10 +2,10 @@
   "schema_version": 1,
   "verification_contract": "pi-sdk-behavior-v2",
   "sdk_versions": {
-    "@earendil-works/pi-agent-core": "1.2.0",
-    "@earendil-works/pi-ai": "1.2.0",
-    "@earendil-works/pi-coding-agent": "1.2.0",
-    "@earendil-works/pi-tui": "1.2.0"
+    "@earendil-works/pi-agent-core": "1.3.0",
+    "@earendil-works/pi-ai": "1.3.0",
+    "@earendil-works/pi-coding-agent": "1.3.0",
+    "@earendil-works/pi-tui": "1.3.0"
   },
   "platform": "win32",
   "model_inference": "none; actual Pi RPC process executes mdxml:preview against a repository Markdown fixture",
@@ -97,12 +97,12 @@
       "command": "npm run smoke:pi",
       "exit_code": 0,
       "passed": true,
-      "evidence": "1.2.0\n",
+      "evidence": "1.3.0\n",
       "assertions": [
         {
           "id": "native_shell_boundary",
           "expected": "The native host shell launches the locally installed Pi CLI and returns its exact SDK version",
-          "observed": "{\"exit_code\":0,\"output\":\"1.2.0\",\"expectedVersion\":\"1.2.0\"}",
+          "observed": "{\"exit_code\":0,\"output\":\"1.3.0\",\"expectedVersion\":\"1.3.0\"}",
           "passed": true
         }
       ]

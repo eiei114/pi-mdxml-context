@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Pin Pi SDK development dependencies to 1.2.0 and verify compatibility against the actual Pi host.
+- Pin Pi SDK development dependencies to 1.3.0 and verify compatibility against the actual Pi host.
 - Refresh the README pinned install example to the latest published npm version, 0.1.23.
 
 ## [0.1.24] - 2026-10-12
