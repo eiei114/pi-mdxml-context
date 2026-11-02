@@ -4,20 +4,12 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import type {
-  ExtensionAPI,
-  ExtensionCommandContext,
-  RegisteredCommand,
-  ToolResultEvent,
-} from "@earendil-works/pi-coding-agent";
-import piMdxmlContext, { MAX_COMPLETIONS, MAX_RECENT, normalizePreviewArg } from "../index.ts";
+import type { ExtensionCommandContext, ToolResultEvent } from "@earendil-works/pi-coding-agent";
+import { loadExtensionHarness } from "./helpers/extension-harness.ts";
+import { MAX_COMPLETIONS, MAX_RECENT, normalizePreviewArg } from "../index.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const markdownFixture = readFileSync(join(__dirname, "fixtures", "wikilink.md"), "utf8");
-
-type HandlerMap = {
-  tool_result?: (event: ToolResultEvent) => void | Promise<void>;
-};
 
 function createMockCommandContext(cwd: string): ExtensionCommandContext {
   return {
@@ -29,29 +21,6 @@ function createMockCommandContext(cwd: string): ExtensionCommandContext {
       editor: async () => undefined,
     },
   } as unknown as ExtensionCommandContext;
-}
-
-function loadExtensionHarness(): {
-  handlers: HandlerMap;
-  commands: Map<string, RegisteredCommand>;
-} {
-  const handlers: HandlerMap = {};
-  const commands = new Map<string, RegisteredCommand>();
-  const pi = {
-    on(event: keyof HandlerMap, handler: HandlerMap[keyof HandlerMap]) {
-      handlers[event] = handler as never;
-    },
-    registerCommand(name: string, options: Omit<RegisteredCommand, "name" | "sourceInfo">) {
-      commands.set(name, {
-        name,
-        sourceInfo: { path: "test", source: "test", scope: "user", origin: "package" },
-        ...options,
-      });
-    },
-  } as ExtensionAPI;
-
-  piMdxmlContext(pi);
-  return { handlers, commands };
 }
 
 function readToolResultEvent(toolCallId: string, text: string, path: string): ToolResultEvent {
