@@ -5,34 +5,20 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { loadExtensionHarness, type HandlerMap } from "./helpers/extension-harness.ts";
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import type { ToolResultMessage } from "@earendil-works/pi-ai";
 import type {
   BeforeAgentStartEvent,
   BeforeAgentStartEventResult,
   ContextEvent,
-  ExtensionAPI,
   ExtensionCommandContext,
   ExtensionContext,
-  RegisteredCommand,
   ToolResultEvent,
 } from "@earendil-works/pi-coding-agent";
-import piMdxmlContext from "../index.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const markdownFixture = readFileSync(join(__dirname, "fixtures", "wikilink.md"), "utf8");
-
-type HandlerMap = {
-  before_agent_start?: (
-    event: BeforeAgentStartEvent,
-    ctx: ExtensionContext,
-  ) => BeforeAgentStartEventResult | void | Promise<BeforeAgentStartEventResult | void>;
-  context?: (
-    event: ContextEvent,
-    ctx: ExtensionContext,
-  ) => { messages?: AgentMessage[] } | void | Promise<{ messages?: AgentMessage[] } | void>;
-  tool_result?: (event: ToolResultEvent) => void | Promise<void>;
-};
 
 function createMockContext(hasUI = false): ExtensionContext {
   return {
@@ -50,29 +36,6 @@ function createMockCommandContext(hasUI = false): ExtensionCommandContext {
   return createMockContext(hasUI) as ExtensionCommandContext;
 }
 
-function loadExtensionHarness(): {
-  handlers: HandlerMap;
-  commands: Map<string, RegisteredCommand>;
-} {
-  const handlers: HandlerMap = {};
-  const commands = new Map<string, RegisteredCommand>();
-  const pi = {
-    on(event: keyof HandlerMap, handler: HandlerMap[keyof HandlerMap]) {
-      handlers[event] = handler as never;
-    },
-    registerCommand(name: string, options: Omit<RegisteredCommand, "name" | "sourceInfo">) {
-      commands.set(name, {
-        name,
-        sourceInfo: { path: "test", source: "test", scope: "user", origin: "package" },
-        ...options,
-      });
-    },
-  } as ExtensionAPI;
-
-  piMdxmlContext(pi);
-  return { handlers, commands };
-}
-
 function readToolResultEvent(text: string): ToolResultEvent {
   return {
     type: "tool_result",
@@ -86,6 +49,22 @@ function readToolResultEvent(text: string): ToolResultEvent {
 }
 
 describe("runtime hook safety", () => {
+  it("captures every registered extension hook and command", () => {
+    const { handlers, commands } = loadExtensionHarness();
+    assert.deepEqual(Object.keys(handlers).sort(), [
+      "before_agent_start",
+      "context",
+      "session_start",
+      "tool_result",
+    ]);
+    assert.deepEqual([...commands.keys()], [
+      "mdxml:on",
+      "mdxml:off",
+      "mdxml:status",
+      "mdxml:preview",
+    ]);
+  });
+
   it("before_agent_start survives missing systemPromptOptions", async () => {
     const { handlers } = loadExtensionHarness();
     const event = {
