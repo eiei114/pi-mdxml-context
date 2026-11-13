@@ -411,15 +411,23 @@ describe("workflow action versions", () => {
 
   for (const file of readdirSync(workflowsDir)) {
     if (!file.endsWith(".yml") && !file.endsWith(".yaml")) continue;
-    it(`${file} pins checkout and setup-node to v6 when used`, () => {
+    it(`${file} uses supported checkout and setup-node major versions`, () => {
       const content = readFileSync(join(workflowsDir, file), "utf8");
-      if (content.includes("actions/checkout@")) {
-        assert.match(content, /actions\/checkout@v6\b/);
-        assert.doesNotMatch(content, /actions\/checkout@v[0-5]\b/);
-      }
-      if (content.includes("actions/setup-node@")) {
-        assert.match(content, /actions\/setup-node@v6\b/);
-        assert.doesNotMatch(content, /actions\/setup-node@v[0-5]\b/);
+
+      for (const action of ["actions/checkout", "actions/setup-node"]) {
+        const reference = `${action}@`;
+        if (!content.includes(reference)) continue;
+
+        const versions = [...content.matchAll(new RegExp(`${reference}([^\\s]+)`, "g"))].map(
+          ([, version]) => version,
+        );
+        assert.ok(versions.length > 0, `${action} must use a versioned major tag`);
+
+        for (const version of versions) {
+          const match = /^v(\d+)$/.exec(version);
+          assert.ok(match, `${action}@${version} must use a versioned major tag`);
+          assert.ok(Number(match[1]) >= 6, `${action}@${version} must use v6 or newer`);
+        }
       }
     });
   }
