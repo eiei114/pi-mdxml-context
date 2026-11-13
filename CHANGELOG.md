@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Update development dependencies: `typescript` to 7.0.2 and `@types/node` to 26.6.6.
 - Pin Pi SDK development dependencies to 1.5.0 and verify compatibility against the actual Pi host.
 - Refresh the README pinned install example to the latest published npm version, 0.1.23.
 
