@@ -196,10 +196,11 @@ function getContextFiles(
 
 /** Normalize Obsidian callout blockquote syntax before parsing. */
 function preprocessObsidianMarkdown(markdown: string): string {
-  return markdown.replace(/^>\s*\[!([^\]]+)]([+-])?\s*(.*)$/gm, (_match, type, fold, title) => {
+  return markdown.replace(/^([ \t]{0,3}>[ \t]*(?:>[ \t]*)*)\[!([^\]]+)]([+-])?[ \t]*(.*)$/gm, (_match, quotePrefix, type, fold, title) => {
     const foldPart = fold ? ` fold=${fold}` : "";
-    const titlePart = title ? ` title=${title}` : "";
-    return `> [!${String(type).trim()}${foldPart}${titlePart}]`;
+    const safeTitle = title ? title.replace(/([*_~])/g, "\\$1") : "";
+    const titlePart = safeTitle ? ` title=${safeTitle}` : "";
+    return `${quotePrefix}[!${String(type).trim()}${foldPart}${titlePart}]`;
   });
 }
 
