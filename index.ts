@@ -198,7 +198,8 @@ function getContextFiles(
 function preprocessObsidianMarkdown(markdown: string): string {
   return markdown.replace(/^([ \t]{0,3}>[ \t]*(?:>[ \t]*)*)\[!([^\]]+)]([+-])?[ \t]*(.*)$/gm, (_match, quotePrefix, type, fold, title) => {
     const foldPart = fold ? ` fold=${fold}` : "";
-    const titlePart = title ? ` title=${title}` : "";
+    const safeTitle = title ? title.replace(/([*_~])/g, "\\$1") : "";
+    const titlePart = safeTitle ? ` title=${safeTitle}` : "";
     return `${quotePrefix}[!${String(type).trim()}${foldPart}${titlePart}]`;
   });
 }

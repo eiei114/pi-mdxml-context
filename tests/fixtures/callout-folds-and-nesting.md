@@ -13,6 +13,9 @@ Supporting prose keeps this snapshot fixture comfortably inside the converter's 
 >
 > > [!tip]- Nested hint
 > > The nested tip keeps its own fold and title.
+>
+> > [!warning]+ **Formatted nested title**
+> > A formatted title must not prevent nested callout recognition.
 
 - List item containing a callout
   > [!note]+

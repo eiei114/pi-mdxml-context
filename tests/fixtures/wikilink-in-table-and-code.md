@@ -12,7 +12,7 @@ Inline code remains literal: `[[Literal Inline]]`.
 [[Literal Fenced]] and ![[literal.png]]
 ```
 
-Wikilink within Markdown link text: [open [[Project Notes|the project]]](https://example.test).
+Wikilink within Markdown link text: [open [[Project Notes|the project]]](https://example.test "External").
 
 ## Golden harness footer
 
