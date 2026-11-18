@@ -1,0 +1,5 @@
+<markdown_context source="context_file" path="tests/fixtures/sample.md" original_format="markdown" converted_by="pi-mdxml-context">
+<section depth="2" title="Golden harness context"><paragraph>Supporting prose increases the source character count so the expansion guard allows snapshot generation. The section below exercises the converter feature under test for this fixture.</paragraph><blockquote><paragraph>Quoted paragraph one.
+Quoted paragraph two.</paragraph></blockquote><blockquote><paragraph>Quoted list:</paragraph><list ordered="false"><list_item><paragraph>alpha</paragraph></list_item><list_item><paragraph>beta</paragraph></list_item></list></blockquote><thematic_break /></section>
+<section depth="2" title="Golden harness footer"><paragraph>Trailing context provides stable surrounding markdown for golden snapshot tests.</paragraph><paragraph>Additional padding line one for expansion ratio compliance.</paragraph><paragraph>Additional padding line two for expansion ratio compliance.</paragraph><paragraph>Additional padding line three for expansion ratio compliance.</paragraph></section>
+</markdown_context>
