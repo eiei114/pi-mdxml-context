@@ -1,0 +1,7 @@
+This standalone note begins with a paragraph rather than a heading. Its opening text carries ordinary context about the purpose of the document, and the converter should preserve it as a paragraph directly inside the markdown_context root.
+
+The second paragraph is separated by a blank line and adds another complete thought. It is long enough to make this fixture representative of useful context instead of a tiny sample whose XML wrapper would trip the expansion guard.
+
+A third paragraph confirms that successive blocks of prose keep their order and remain peers in the document. There are no heading markers anywhere in this note, so none of these paragraphs should be nested inside a generated section.
+
+The final paragraph gives the fixture enough source text for normal conversion while checking the same invariant at the end of the document. Every paragraph should stay directly beneath markdown_context with no synthetic heading section.
