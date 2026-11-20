@@ -36,12 +36,12 @@ function createMockCommandContext(hasUI = false): ExtensionCommandContext {
   return createMockContext(hasUI) as ExtensionCommandContext;
 }
 
-function readToolResultEvent(text: string): ToolResultEvent {
+function readToolResultEvent(text: string, path = "docs/example.md"): ToolResultEvent {
   return {
     type: "tool_result",
     toolCallId: "call-read",
     toolName: "read",
-    input: { path: "docs/example.md" },
+    input: { path },
     content: [{ type: "text", text }],
     isError: false,
     details: undefined,
@@ -162,9 +162,31 @@ describe("runtime hook safety", () => {
     assert.equal(result?.messages?.[0], imageOnly);
   });
 
+  it("context converts .md-path tool results that bypass the content heuristic", async () => {
+    const { handlers } = loadExtensionHarness();
+    const text = `# Plain heading\n${"Ordinary note body. ".repeat(30)}`;
+    await handlers.tool_result?.(readToolResultEvent(text));
+
+    const toolMessage: ToolResultMessage = {
+      role: "toolResult",
+      toolCallId: "call-read",
+      toolName: "read",
+      content: [{ type: "text", text }],
+      isError: false,
+      timestamp: 2,
+    };
+    const result = await handlers.context?.(
+      { type: "context", messages: [toolMessage] },
+      createMockContext(),
+    );
+
+    const converted = result?.messages?.[0] as ToolResultMessage;
+    assert.match(converted.content[0]?.type === "text" ? converted.content[0].text : "", /<markdown_context/);
+  });
+
   it("context converts tracked markdown tool results for provider-bound messages", async () => {
     const { handlers } = loadExtensionHarness();
-    await handlers.tool_result?.(readToolResultEvent(markdownFixture));
+    await handlers.tool_result?.(readToolResultEvent(markdownFixture, "src/example.txt"));
 
     const toolMessage: ToolResultMessage = {
       role: "toolResult",
@@ -182,6 +204,62 @@ describe("runtime hook safety", () => {
     assert.equal(converted.role, "toolResult");
     assert.match(converted.content[0]?.type === "text" ? converted.content[0].text : "", /<markdown_context/);
   });
+
+  const nonMarkdownResults = [
+    {
+      name: "JSON",
+      toolName: "read",
+      input: { path: "package.json" },
+      text: '{\n  "name": "example",\n  "enabled": true\n}\n',
+    },
+    {
+      name: "unified diff",
+      toolName: "bash",
+      input: { command: "git diff -- src/index.ts" },
+      text: "diff --git a/src/index.ts b/src/index.ts\nindex 1234567..89abcde 100644\n--- a/src/index.ts\n+++ b/src/index.ts\n@@ -1 +1 @@\n-const oldValue = 1;\n+const newValue = 2;\n",
+    },
+    {
+      name: "terminal output",
+      toolName: "bash",
+      input: { command: "npm test" },
+      text: "> example@1.0.0 test\n> node --test\n\nTests passed: 12\n",
+    },
+  ];
+
+  for (const [index, fixture] of nonMarkdownResults.entries()) {
+    it(`leaves ${fixture.name} tool results unchanged at send time`, async () => {
+      const { handlers } = loadExtensionHarness();
+      const toolCallId = `call-non-markdown-${index}`;
+      const originalContent = [{ type: "text" as const, text: fixture.text }];
+
+      await handlers.tool_result?.({
+        type: "tool_result",
+        toolCallId,
+        toolName: fixture.toolName,
+        input: fixture.input,
+        content: originalContent,
+        isError: false,
+        details: undefined,
+      } as ToolResultEvent);
+
+      const toolMessage: ToolResultMessage = {
+        role: "toolResult",
+        toolCallId,
+        toolName: fixture.toolName,
+        content: originalContent,
+        isError: false,
+        timestamp: 3,
+      };
+      const result = await handlers.context?.(
+        { type: "context", messages: [toolMessage] },
+        createMockContext(),
+      );
+      const sentMessage = result?.messages?.[0] as ToolResultMessage;
+
+      assert.deepEqual(sentMessage.content, originalContent);
+      assert.equal(sentMessage.content[0]?.type === "text" ? sentMessage.content[0].text : "", fixture.text);
+    });
+  }
 
   it("preview command does not touch UI when hasUI is false", async () => {
     const { commands } = loadExtensionHarness();
