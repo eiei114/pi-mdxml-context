@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Filter `/mdxml:preview` history suggestions by the typed prefix so unrelated `recent:N` entries no longer crowd out Markdown paths.
+
 ### Changed
 
 - Normalize folded and nested Obsidian callouts, including those inside list items, without consuming their body text.
