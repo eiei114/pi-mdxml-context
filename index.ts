@@ -516,11 +516,12 @@ function findMarkdownFiles(prefix: string): AutocompleteItem[] {
 
 /** Build autocomplete items from recent conversions and workspace markdown files. */
 function previewCompletions(prefix: string): AutocompleteItem[] {
+  const recentPrefix = prefix.trim().toLowerCase();
   const recentItems = recent.map((item, index) => ({
     value: `recent:${index + 1}`,
     label: `recent:${index + 1}`,
     description: item.label,
-  }));
+  })).filter(({ value }) => value.startsWith(recentPrefix));
   return [...recentItems, ...findMarkdownFiles(prefix)].slice(0, MAX_COMPLETIONS);
 }
 
