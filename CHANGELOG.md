@@ -8,6 +8,7 @@
 
 ### Changed
 
+- Update the four Pi SDK development dependencies to 1.6.0 and stage package version 0.1.33.
 - Normalize folded and nested Obsidian callouts, including those inside list items, without consuming their body text.
 - Add golden fixtures for Obsidian wikilink references, embeds, table/code behavior, and callout edge cases.
 - Update Pi SDK development dependencies to 1.5.2 and stage package version 0.1.31.
