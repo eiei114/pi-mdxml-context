@@ -117,6 +117,9 @@ describe("preview autocomplete", () => {
     const guides = join(docs, "Guides");
     mkdirSync(guides);
     writeFileSync(join(guides, "GettingStarted.md"), markdownFixture);
+    const greek = join(workspace, "ΟΣΑ");
+    mkdirSync(greek);
+    writeFileSync(join(greek, "ΟΣ-note.md"), markdownFixture);
     startSession(workspace);
 
     for (let index = 0; index < MAX_RECENT; index += 1) {
@@ -164,6 +167,11 @@ describe("preview autocomplete", () => {
       assert.deepEqual(completions.map(({ value }) => value), ["docs/Guides/GettingStarted.md"]);
     });
   }
+
+  it("keeps completions when Unicode lowercasing changes a directory prefix", async () => {
+    const completions = (await complete("ΟΣ")) ?? [];
+    assert.deepEqual(completions.map(({ value }) => value), ["ΟΣΑ/ΟΣ-note.md"]);
+  });
 });
 
 describe("preview file paths", () => {

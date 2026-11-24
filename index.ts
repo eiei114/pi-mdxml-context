@@ -488,7 +488,8 @@ function purgeToolMeta(toolCallId: string): void {
 
 /** Collect markdown file paths under cwd for autocomplete, up to a depth limit. */
 function findMarkdownFiles(prefix: string): AutocompleteItem[] {
-  const matchPrefix = normalizePreviewArg(prefix).toLowerCase();
+  const normalizedPrefix = normalizePreviewArg(prefix);
+  const matchPrefix = normalizedPrefix.toLowerCase();
   const results: AutocompleteItem[] = [];
   const ignored = new Set([".git", ".obsidian", "node_modules", ".pi", ".claude"]);
 
@@ -502,7 +503,13 @@ function findMarkdownFiles(prefix: string): AutocompleteItem[] {
       const rel = relative(cwd, full).split(sep).join("/");
       const matchPath = rel.toLowerCase();
       if (entry.isDirectory()) {
-        if (!matchPrefix || matchPath.startsWith(matchPrefix) || matchPrefix.startsWith(`${matchPath}/`)) walk(full, depth + 1);
+        // Lowercasing can break a literal prefix match (e.g. ΟΣ → ος, ΟΣΑ → οσα).
+        if (
+          rel.startsWith(normalizedPrefix) || normalizedPrefix.startsWith(`${rel}/`) ||
+          matchPath.startsWith(matchPrefix) || matchPrefix.startsWith(`${matchPath}/`)
+        ) {
+          walk(full, depth + 1);
+        }
         continue;
       }
       if (extname(entry.name).toLowerCase() !== ".md") continue;
