@@ -114,6 +114,9 @@ describe("preview autocomplete", () => {
     }
     writeFileSync(join(docs, "sample.txt"), "Not Markdown");
     writeFileSync(join(docs, "other.md"), markdownFixture);
+    const guides = join(docs, "Guides");
+    mkdirSync(guides);
+    writeFileSync(join(guides, "GettingStarted.md"), markdownFixture);
     startSession(workspace);
 
     for (let index = 0; index < MAX_RECENT; index += 1) {
@@ -154,6 +157,13 @@ describe("preview autocomplete", () => {
       Array.from({ length: MAX_COMPLETIONS }, (_, index) => `docs/sample-${index.toString().padStart(2, "0")}.md`),
     );
   });
+
+  for (const prefix of ["DoCs/gU", "@dOCS\\gUIDES\\gET"]) {
+    it(`completes mixed-case nested prefix ${prefix} without changing the path casing`, async () => {
+      const completions = (await complete(prefix)) ?? [];
+      assert.deepEqual(completions.map(({ value }) => value), ["docs/Guides/GettingStarted.md"]);
+    });
+  }
 });
 
 describe("preview file paths", () => {
