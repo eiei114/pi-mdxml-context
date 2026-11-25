@@ -178,4 +178,45 @@ describe("preview file paths", () => {
     await preview.handler("@docs\\sample.md", ctx);
     assert.match(editorContent, /preview sample/);
   });
+
+  it("shows size metadata and warns when the expansion guard skips a short Markdown file", async (t) => {
+    const { commands } = loadExtensionHarness();
+    const preview = commands.get("mdxml:preview");
+    assert.ok(preview);
+
+    const workspace = mkdtempSync(join(tmpdir(), "pi-mdxml-preview-guard-"));
+    t.after(() => rmSync(workspace, { recursive: true, force: true }));
+    const markdown = "# Hi";
+    writeFileSync(join(workspace, "short.md"), markdown, "utf8");
+
+    const edits: string[] = [];
+    const notices: { message: string; level?: string }[] = [];
+    const ctx = createMockCommandContext(workspace);
+    ctx.ui.editor = async (_title, content) => {
+      edits.push(content ?? "");
+      return undefined;
+    };
+    ctx.ui.notify = (message, level) => {
+      notices.push({ message, level });
+    };
+
+    await preview.handler("short.md", ctx);
+
+    assert.equal(edits.length, 1);
+    const summary = /^<mdxml_skipped((?: \w+="[^"]*")+) \/>$/.exec(edits[0]);
+    assert.ok(summary, "expected the editor to show a skipped summary");
+    const attributes = Object.fromEntries(
+      Array.from(summary[1].matchAll(/(\w+)="([^"]*)"/g), ([, key, value]) => [key, value]),
+    );
+    assert.equal(attributes.skip_category, "expansion_ratio");
+    assert.equal(attributes.original_chars, String(markdown.length));
+    assert.match(attributes.output_chars ?? "", /^\d+$/);
+    const outputChars = Number(attributes.output_chars);
+    assert.ok(Number.isSafeInteger(outputChars) && outputChars > 2 * markdown.length);
+    assert.equal(attributes.expansion_ratio, String(Number((outputChars / markdown.length).toFixed(2))));
+    assert.match(attributes.reason ?? "", /expansion ratio exceeds/);
+    assert.deepEqual(notices.filter(({ level }) => level === "warning"), [
+      { message: `Preview skipped: ${attributes.reason}`, level: "warning" },
+    ]);
+  });
 });
