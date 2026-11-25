@@ -162,6 +162,40 @@ describe("runtime hook safety", () => {
     assert.equal(result?.messages?.[0], imageOnly);
   });
 
+  it("context converts Markdown around a tool result image without changing the original", async () => {
+    const { handlers } = loadExtensionHarness();
+    const image = { type: "image" as const, data: "c3ludGhldGlj", mimeType: "image/png" };
+    const toolMessage: ToolResultMessage = {
+      role: "toolResult",
+      toolCallId: "call-read",
+      toolName: "read",
+      content: [
+        // Use full paragraphs so XML wrapper overhead does not trip the expansion guard.
+        { type: "text", text: "**Before the image** is a short introduction to a fictional field guide describing how to recognize the trees along a woodland trail.\n" },
+        image,
+        { type: "text", text: "*After the image* is a note suggesting that readers compare the illustrated leaves with the leaves they find beside the trail." },
+      ],
+      isError: false,
+      timestamp: 2,
+    };
+    const original = structuredClone(toolMessage);
+    const event: ContextEvent = { type: "context", messages: [toolMessage] };
+
+    await handlers.tool_result?.({ ...readToolResultEvent(""), content: toolMessage.content });
+    const result = await handlers.context?.(event, createMockContext());
+
+    const sent = result?.messages?.[0];
+    assert.equal(sent?.role, "toolResult");
+    assert.equal(sent.content.length, 3);
+    const [converted, sentImage, trailing] = sent.content;
+    assert.equal(converted?.type, "text");
+    assert.match(converted.text, /<markdown_context\b/);
+    assert.match(converted.text, /<strong>Before the image<\/strong>[\s\S]*<emphasis>After the image<\/emphasis>/);
+    assert.deepEqual(sentImage, original.content[1]);
+    assert.deepEqual(trailing, { type: "text", text: "" });
+    assert.deepEqual(toolMessage, original);
+  });
+
   it("context converts .md-path tool results that bypass the content heuristic", async () => {
     const { handlers } = loadExtensionHarness();
     const text = `# Plain heading\n${"Ordinary note body. ".repeat(30)}`;
