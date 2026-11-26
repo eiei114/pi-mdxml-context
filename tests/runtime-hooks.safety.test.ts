@@ -126,6 +126,32 @@ describe("runtime hook safety", () => {
     assert.equal(convertedCount, 2);
   });
 
+  it("before_agent_start preserves literal $& and $$ in context replacement", async () => {
+    const { handlers } = loadExtensionHarness();
+    // Keep the note long enough that the XML wrapper stays within the expansion guard.
+    const body = "This note documents shell and template syntax. When quoting an example, copy the symbols exactly as written so the reader can distinguish the original notation from the text produced by a replacement operation: ";
+    const markdown = `${body}\`$&\` and \`$$\`.\n`;
+    const prefix = "System instructions\n\n";
+    const suffix = "\n\nEnd of context";
+    const path = "docs/literal-dollars.md";
+    const event = {
+      type: "before_agent_start",
+      prompt: "hi",
+      systemPrompt: `${prefix}${markdown}${suffix}`,
+      systemPromptOptions: { cwd: process.cwd(), contextFiles: [{ path, content: markdown }] },
+    } as BeforeAgentStartEvent;
+    const original = structuredClone(event);
+
+    const result = await handlers.before_agent_start?.(event, createMockContext());
+    const expectedXml = [
+      `<markdown_context source="context_file" path="${path}" original_format="markdown" converted_by="pi-mdxml-context">`,
+      `<paragraph>${body}<code>$&amp;</code> and <code>$$</code>.</paragraph>`,
+      "</markdown_context>",
+    ].join("\n");
+    assert.equal(result?.systemPrompt, `${prefix}${expectedXml}${suffix}`);
+    assert.deepEqual(event, original);
+  });
+
   it("tool_result ignores image-only content without throwing", async () => {
     const { handlers } = loadExtensionHarness();
     const event = {
