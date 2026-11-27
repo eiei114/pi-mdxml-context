@@ -65,6 +65,64 @@ describe("runtime hook safety", () => {
     ]);
   });
 
+  it("mdxml:off stops both send-time hooks and mdxml:on restores conversion", async () => {
+    // The toggle is module-scoped; use a fresh instance without changing the other cases' state.
+    const moduleUrl = new URL(`../index.ts?toggle-test=${randomUUID()}`, import.meta.url);
+    const { default: registerExtension } = await import(moduleUrl.href) as typeof import("../index.ts");
+    const { handlers, commands } = loadExtensionHarness(registerExtension);
+    const { before_agent_start, context, tool_result } = handlers;
+    const off = commands.get("mdxml:off");
+    const on = commands.get("mdxml:on");
+    assert.ok(before_agent_start && context && tool_result && off && on);
+
+    const ctx = createMockCommandContext();
+    const runSendHooks = async (phase: "enabled" | "disabled" | "reenabled") => {
+      const path = `docs/${phase}.md`;
+      const markdown = `**${phase} context**\n\n${markdownFixture}`;
+      const readEvent = {
+        ...readToolResultEvent(`**${phase} tool result**\n\n${markdownFixture}`, path),
+        toolCallId: `call-${phase}`,
+      };
+      const message: ToolResultMessage = {
+        role: "toolResult",
+        toolName: readEvent.toolName,
+        toolCallId: readEvent.toolCallId,
+        content: readEvent.content,
+        isError: false,
+        timestamp: 1,
+      };
+      const promptEvent = {
+        type: "before_agent_start",
+        prompt: "hi",
+        systemPrompt: markdown,
+        systemPromptOptions: { cwd: process.cwd(), contextFiles: [{ path, content: markdown }] },
+      } as BeforeAgentStartEvent;
+      const promptResult = await before_agent_start(promptEvent, ctx);
+      await tool_result(readEvent);
+      const contextResult = await context({ type: "context", messages: [message] }, ctx);
+
+      if (phase === "disabled") {
+        assert.equal(promptResult, undefined, "before_agent_start must not replace the prompt while disabled");
+        assert.equal(contextResult, undefined, "context must not replace messages while disabled");
+      } else {
+        assert.match(promptResult?.systemPrompt ?? "", /<markdown_context source="context_file"/, `${phase}: expected converted system prompt`);
+        assert.ok(promptResult?.systemPrompt?.includes(`<strong>${phase} context</strong>`));
+        const sent = contextResult?.messages?.[0];
+        assert.equal(sent?.role, "toolResult");
+        const block = sent.content[0];
+        assert.equal(block?.type, "text");
+        assert.match(block.text, /<markdown_context source="tool_result"/);
+        assert.ok(block.text.includes(`<strong>${phase} tool result</strong>`));
+      }
+    };
+
+    await runSendHooks("enabled");
+    await off.handler("", ctx);
+    await runSendHooks("disabled");
+    await on.handler("", ctx);
+    await runSendHooks("reenabled");
+  });
+
   it("before_agent_start survives missing systemPromptOptions", async () => {
     const { handlers } = loadExtensionHarness();
     const event = {

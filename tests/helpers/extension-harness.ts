@@ -25,7 +25,7 @@ export type HandlerMap = {
   tool_result?: (event: ToolResultEvent) => void | Promise<void>;
 };
 
-export function loadExtensionHarness(): {
+export function loadExtensionHarness(registerExtension = piMdxmlContext): {
   handlers: HandlerMap;
   commands: Map<string, RegisteredCommand>;
 } {
@@ -44,6 +44,6 @@ export function loadExtensionHarness(): {
     },
   } as ExtensionAPI;
 
-  piMdxmlContext(pi);
+  registerExtension(pi);
   return { handlers, commands };
 }
