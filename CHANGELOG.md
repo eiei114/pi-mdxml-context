@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Complete nested `/mdxml:preview` paths case-insensitively while preserving the original path casing in suggestions.
 - Filter `/mdxml:preview` history suggestions by the typed prefix so unrelated `recent:N` entries no longer crowd out Markdown paths.
 
 ### Changed

@@ -489,6 +489,7 @@ function purgeToolMeta(toolCallId: string): void {
 /** Collect markdown file paths under cwd for autocomplete, up to a depth limit. */
 function findMarkdownFiles(prefix: string): AutocompleteItem[] {
   const normalizedPrefix = normalizePreviewArg(prefix);
+  const matchPrefix = normalizedPrefix.toLowerCase();
   const results: AutocompleteItem[] = [];
   const ignored = new Set([".git", ".obsidian", "node_modules", ".pi", ".claude"]);
 
@@ -500,12 +501,19 @@ function findMarkdownFiles(prefix: string): AutocompleteItem[] {
       if (entry.isDirectory() && ignored.has(entry.name)) continue;
       const full = join(dir, entry.name);
       const rel = relative(cwd, full).split(sep).join("/");
+      const matchPath = rel.toLowerCase();
       if (entry.isDirectory()) {
-        if (!normalizedPrefix || rel.startsWith(normalizedPrefix) || normalizedPrefix.startsWith(`${rel}/`)) walk(full, depth + 1);
+        // Lowercasing can break a literal prefix match (e.g. ΟΣ → ος, ΟΣΑ → οσα).
+        if (
+          rel.startsWith(normalizedPrefix) || normalizedPrefix.startsWith(`${rel}/`) ||
+          matchPath.startsWith(matchPrefix) || matchPrefix.startsWith(`${matchPath}/`)
+        ) {
+          walk(full, depth + 1);
+        }
         continue;
       }
       if (extname(entry.name).toLowerCase() !== ".md") continue;
-      if (normalizedPrefix && !rel.toLowerCase().includes(normalizedPrefix.toLowerCase())) continue;
+      if (matchPrefix && !matchPath.includes(matchPrefix)) continue;
       results.push({ value: rel, label: rel, description: "Markdown file" });
     }
   }
